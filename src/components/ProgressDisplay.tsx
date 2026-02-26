@@ -1,4 +1,5 @@
 import type { ProgressEvent } from '../types';
+import { VinylMergeAnimation } from './VinylMergeAnimation';
 
 type Props = {
   progress: ProgressEvent;
@@ -19,6 +20,8 @@ export function ProgressDisplay({ progress, onCancel }: Props) {
 
   return (
     <div className="space-y-6 text-center">
+      <VinylMergeAnimation progress={progress.progress} />
+
       <div>
         <p className="text-lg font-medium text-white">{stepLabel}</p>
         <p className="mt-1 text-sm text-gray-400">{progress.detail}</p>
