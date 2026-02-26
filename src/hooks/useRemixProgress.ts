@@ -17,6 +17,7 @@ export function useRemixProgress(
 ) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const delayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const errorCountRef = useRef(0);
   const currentStepRef = useRef<string>('separating');
 
@@ -54,12 +55,20 @@ export function useRemixProgress(
         resetTimeout();
 
         if (data.step === 'complete') {
+          // Push animation to full merge/glow state
           dispatch({
-            type: 'REMIX_READY',
-            explanation: data.explanation ?? '',
-            warnings: data.warnings ?? [],
-            usedFallback: data.usedFallback ?? false,
+            type: 'PROGRESS_EVENT',
+            event: { step: 'rendering', detail: 'Complete!', progress: 1.0 },
           });
+          // Delay transition to ready phase so the merge animation holds
+          delayTimeoutRef.current = setTimeout(() => {
+            dispatch({
+              type: 'REMIX_READY',
+              explanation: data.explanation ?? '',
+              warnings: data.warnings ?? [],
+              usedFallback: data.usedFallback ?? false,
+            });
+          }, 800);
           es.close();
           return;
         }
@@ -95,6 +104,7 @@ export function useRemixProgress(
       es.close();
       eventSourceRef.current = null;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (delayTimeoutRef.current) clearTimeout(delayTimeoutRef.current);
     };
   }, [sessionId, dispatch]);
 }
