@@ -3,6 +3,7 @@ import { connectProgress } from '../api/client';
 import type { AppAction, ProgressEvent } from '../types';
 
 const TIMEOUT_BY_STEP: Record<string, number> = {
+  downloading: 120_000, // 2 minutes per song download
   separating: 180_000, // 3 minutes (cold start + separation)
   analyzing: 60_000,
   interpreting: 60_000,

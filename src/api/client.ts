@@ -49,6 +49,39 @@ export function createRemix(
 }
 
 /**
+ * Submit two YouTube URLs and a prompt to create a remix.
+ * Uses JSON body (no file upload needed).
+ */
+export async function submitYouTubeRemix(
+  urlA: string,
+  urlB: string,
+  prompt: string,
+): Promise<CreateRemixResponse> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}/remix/youtube`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url_a: urlA, url_b: urlB, prompt }),
+    });
+  } catch {
+    throw { type: 'network' } as CreateRemixError;
+  }
+
+  if (!response.ok) {
+    let body = { detail: 'Unknown error' };
+    try {
+      body = await response.json();
+    } catch {
+      /* use default */
+    }
+    throw { type: 'http', status: response.status, body } as CreateRemixError;
+  }
+
+  return response.json();
+}
+
+/**
  * Connect to SSE progress stream for a remix session.
  */
 export function connectProgress(sessionId: string): EventSource {

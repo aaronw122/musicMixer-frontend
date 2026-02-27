@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
-import type { AppState, AppAction } from '../types';
+import type { AppState, AppAction, SongInput } from '../types';
 
 const DB_NAME = 'musicMixer';
 const DB_VERSION = 1;
 const STORE_NAME = 'formData';
 const PROMPT_KEY = 'remix_prompt';
+const SONG_A_YT_KEY = 'remix_song_a_youtube';
+const SONG_B_YT_KEY = 'remix_song_b_youtube';
 
 // --- IndexedDB helpers ---
 
@@ -64,6 +66,58 @@ async function clearFiles(): Promise<void> {
   });
 }
 
+// --- YouTube URL session storage helpers ---
+
+type StoredYouTube = { url: string; title?: string; thumbnailUrl?: string };
+
+function saveYouTubeUrl(key: string, data: StoredYouTube): void {
+  try {
+    sessionStorage.setItem(key, JSON.stringify(data));
+  } catch {
+    // quota exceeded — ignore
+  }
+}
+
+function loadYouTubeUrl(key: string): StoredYouTube | null {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function clearYouTubeUrls(): void {
+  sessionStorage.removeItem(SONG_A_YT_KEY);
+  sessionStorage.removeItem(SONG_B_YT_KEY);
+}
+
+// --- Persistence helpers for SongInput ---
+
+function persistSongInput(slot: 'A' | 'B', song: SongInput | null): void {
+  const fileKey = slot === 'A' ? 'songA' : 'songB';
+  const ytKey = slot === 'A' ? SONG_A_YT_KEY : SONG_B_YT_KEY;
+
+  if (!song) {
+    deleteFile(fileKey).catch(() => {});
+    sessionStorage.removeItem(ytKey);
+    return;
+  }
+
+  if (song.type === 'file') {
+    saveFile(fileKey, song.file).catch(() => {});
+    sessionStorage.removeItem(ytKey);
+  } else {
+    deleteFile(fileKey).catch(() => {});
+    saveYouTubeUrl(ytKey, {
+      url: song.url,
+      title: song.title,
+      thumbnailUrl: song.thumbnailUrl,
+    });
+  }
+}
+
 // --- Hook ---
 
 export function useFormPersistence(
@@ -85,10 +139,38 @@ export function useFormPersistence(
     async function restore() {
       try {
         const prompt = sessionStorage.getItem(PROMPT_KEY);
-        const [songA, songB] = await Promise.all([loadFile('songA'), loadFile('songB')]);
 
-        if (songA) dispatch({ type: 'SET_SONG_A', file: songA });
-        if (songB) dispatch({ type: 'SET_SONG_B', file: songB });
+        // Try loading files from IndexedDB
+        const [fileA, fileB] = await Promise.all([loadFile('songA'), loadFile('songB')]);
+
+        // Try loading YouTube URLs from sessionStorage
+        const ytA = loadYouTubeUrl(SONG_A_YT_KEY);
+        const ytB = loadYouTubeUrl(SONG_B_YT_KEY);
+
+        // Restore Song A (file takes precedence if both exist)
+        if (fileA) {
+          dispatch({ type: 'SET_SONG_A', file: fileA });
+        } else if (ytA) {
+          dispatch({
+            type: 'SET_YOUTUBE_URL_A',
+            url: ytA.url,
+            title: ytA.title,
+            thumbnailUrl: ytA.thumbnailUrl,
+          });
+        }
+
+        // Restore Song B
+        if (fileB) {
+          dispatch({ type: 'SET_SONG_B', file: fileB });
+        } else if (ytB) {
+          dispatch({
+            type: 'SET_YOUTUBE_URL_B',
+            url: ytB.url,
+            title: ytB.title,
+            thumbnailUrl: ytB.thumbnailUrl,
+          });
+        }
+
         if (prompt) dispatch({ type: 'SET_PROMPT', prompt });
       } catch {
         // Storage unavailable — silently degrade
@@ -107,19 +189,18 @@ export function useFormPersistence(
     }
   }, [state.phase, prompt]);
 
-  // Persist file changes (save or delete)
+  // Persist song input changes (save or delete)
   useEffect(() => {
     if (state.phase !== 'idle') return;
-    if (songA) saveFile('songA', songA).catch(() => {});
-    else deleteFile('songA').catch(() => {});
-    if (songB) saveFile('songB', songB).catch(() => {});
-    else deleteFile('songB').catch(() => {});
+    persistSongInput('A', songA);
+    persistSongInput('B', songB);
   }, [state.phase, songA, songB]);
 
   // Clear storage when remix is complete
   useEffect(() => {
     if (state.phase === 'ready') {
       sessionStorage.removeItem(PROMPT_KEY);
+      clearYouTubeUrls();
       clearFiles().catch(() => {});
     }
   }, [state.phase]);

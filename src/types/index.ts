@@ -1,6 +1,7 @@
 // === API Contract Types ===
 
 export type ProgressStep =
+  | 'downloading'
   | 'separating'
   | 'analyzing'
   | 'interpreting'
@@ -32,28 +33,40 @@ export type SessionStatus = {
   usedFallback?: boolean;
 };
 
+// === Song Input Types ===
+
+export type SongInput =
+  | { type: 'file'; file: File }
+  | { type: 'youtube'; url: string; title?: string; thumbnailUrl?: string };
+
 // === App State (discriminated union) ===
 
 export type AppState =
   | {
       phase: 'idle';
-      songA: File | null;
-      songB: File | null;
+      songA: SongInput | null;
+      songB: SongInput | null;
       prompt: string;
     }
   | {
       phase: 'uploading';
-      songA: File;
-      songB: File;
+      songA: SongInput;
+      songB: SongInput;
       prompt: string;
       uploadProgress: number;
+    }
+  | {
+      phase: 'submitting';
+      songA: SongInput;
+      songB: SongInput;
+      prompt: string;
     }
   | {
       phase: 'processing';
       sessionId: string;
       progress: ProgressEvent;
-      songA: File;
-      songB: File;
+      songA: SongInput;
+      songB: SongInput;
       prompt: string;
     }
   | {
@@ -66,8 +79,8 @@ export type AppState =
   | {
       phase: 'error';
       message: string;
-      songA: File | null;
-      songB: File | null;
+      songA: SongInput | null;
+      songB: SongInput | null;
       prompt: string;
     };
 
@@ -76,10 +89,16 @@ export type AppState =
 export type AppAction =
   | { type: 'SET_SONG_A'; file: File | null }
   | { type: 'SET_SONG_B'; file: File | null }
+  | { type: 'SET_YOUTUBE_URL_A'; url: string; title?: string; thumbnailUrl?: string }
+  | { type: 'SET_YOUTUBE_URL_B'; url: string; title?: string; thumbnailUrl?: string }
+  | { type: 'CLEAR_SONG_A' }
+  | { type: 'CLEAR_SONG_B' }
   | { type: 'SET_PROMPT'; prompt: string }
   | { type: 'START_UPLOAD' }
+  | { type: 'START_SUBMIT' }
   | { type: 'UPLOAD_PROGRESS'; percent: number }
   | { type: 'UPLOAD_SUCCESS'; sessionId: string }
+  | { type: 'SUBMIT_SUCCESS'; sessionId: string }
   | { type: 'PROGRESS_EVENT'; event: ProgressEvent }
   | { type: 'REMIX_READY'; explanation: string; warnings: string[]; usedFallback: boolean }
   | { type: 'ERROR'; message: string }
