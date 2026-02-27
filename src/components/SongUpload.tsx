@@ -74,7 +74,7 @@ export function SongUpload({
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<InputMode>(
-    song?.type === 'youtube' ? 'youtube' : 'file',
+    song?.type === 'file' ? 'file' : 'youtube',
   );
   const [urlInput, setUrlInput] = useState(
     song?.type === 'youtube' ? song.url : '',
@@ -171,152 +171,146 @@ export function SongUpload({
 
   return (
     <div className="space-y-2">
-      {/* Mode toggle */}
-      {!disabled && (
-        <div className="flex rounded-lg bg-gray-900 p-0.5">
-          <button
-            className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-              mode === 'file'
-                ? 'bg-gray-700 text-white'
-                : 'text-gray-500 hover:text-gray-300'
-            }`}
-            onClick={() => handleModeSwitch('file')}
-          >
-            Upload File
-          </button>
-          <button
-            className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-              mode === 'youtube'
-                ? 'bg-gray-700 text-white'
-                : 'text-gray-500 hover:text-gray-300'
-            }`}
-            onClick={() => handleModeSwitch('youtube')}
-          >
-            YouTube Link
-          </button>
-        </div>
-      )}
-
       {mode === 'file' ? (
         /* File upload mode */
-        <div
-          className={`relative rounded-xl border-2 border-dashed p-6 text-center transition-colors ${
-            dragOver
-              ? 'border-blue-400 bg-blue-950/30'
-              : isFileSong
-                ? 'border-green-500/50 bg-green-950/20'
-                : 'border-gray-700 bg-gray-900/50 hover:border-gray-500'
-          } ${disabled ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
-          onClick={() => !disabled && inputRef.current?.click()}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
-          }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={handleDrop}
-        >
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".mp3,.wav,audio/mpeg,audio/wav"
-            className="sr-only"
-            onChange={handleChange}
-            disabled={disabled}
-          />
-          <p className="text-sm font-medium text-gray-400 mb-1">{label}</p>
-          {isFileSong ? (
-            <div>
-              <p className="text-white font-medium truncate">{song.file.name}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {(song.file.size / (1024 * 1024)).toFixed(1)} MB
-              </p>
-              {!disabled && (
-                <button
-                  className="mt-2 text-xs text-gray-500 hover:text-gray-300 underline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onClear();
-                    setError(null);
-                  }}
-                >
-                  Remove
-                </button>
-              )}
-            </div>
-          ) : (
-            <div>
-              <p className="text-gray-500">
-                Drop an audio file here or{' '}
-                <span className="text-blue-400 underline">browse</span>
-              </p>
-              <p className="text-xs text-gray-600 mt-1">MP3 or WAV, max 50MB</p>
-            </div>
-          )}
-          {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
-        </div>
-      ) : (
-        /* YouTube URL mode */
-        <div
-          className={`relative rounded-xl border-2 p-6 transition-colors ${
-            isYouTubeSong
-              ? 'border-green-500/50 bg-green-950/20'
-              : 'border-gray-700 bg-gray-900/50'
-          } ${disabled ? 'opacity-50 pointer-events-none' : ''}`}
-        >
-          <p className="text-sm font-medium text-gray-400 mb-3">{label}</p>
-
-          <input
-            type="text"
-            className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            placeholder="Paste a YouTube URL..."
-            value={urlInput}
-            onChange={handleUrlChange}
-            disabled={disabled}
-          />
-
-          {/* Loading state */}
-          {oembedLoading && urlInput && isValidYouTubeUrl(urlInput) && (
-            <p className="mt-2 text-xs text-gray-500">Fetching video info...</p>
-          )}
-
-          {/* YouTube preview */}
-          {isYouTubeSong && song.title && (
-            <div className="mt-3 flex items-start gap-3">
-              {song.thumbnailUrl && (
-                <img
-                  src={song.thumbnailUrl}
-                  alt=""
-                  className="w-20 h-15 rounded object-cover flex-shrink-0"
-                />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="text-sm text-white font-medium truncate">
-                  {song.title}
+        <>
+          <div
+            className={`relative rounded-xl border-2 border-dashed p-6 text-center transition-colors ${
+              dragOver
+                ? 'border-blue-400 bg-blue-950/30'
+                : isFileSong
+                  ? 'border-green-500/50 bg-green-950/20'
+                  : 'border-gray-700 bg-gray-900/50 hover:border-gray-500'
+            } ${disabled ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
+            onClick={() => !disabled && inputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragOver(true);
+            }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={handleDrop}
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              accept=".mp3,.wav,audio/mpeg,audio/wav"
+              className="sr-only"
+              onChange={handleChange}
+              disabled={disabled}
+            />
+            <p className="text-sm font-medium text-gray-400 mb-1">{label}</p>
+            {isFileSong ? (
+              <div>
+                <p className="text-white font-medium truncate">{song.file.name}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {(song.file.size / (1024 * 1024)).toFixed(1)} MB
                 </p>
-                <span className="inline-block mt-1 rounded bg-gray-800 px-2 py-0.5 text-[10px] text-gray-400">
-                  YouTube source (~128kbps)
-                </span>
+                {!disabled && (
+                  <button
+                    className="mt-2 text-xs text-gray-500 hover:text-gray-300 underline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onClear();
+                      setError(null);
+                    }}
+                  >
+                    Remove
+                  </button>
+                )}
               </div>
-            </div>
-          )}
-
-          {/* Clear button */}
-          {isYouTubeSong && !disabled && (
+            ) : (
+              <div>
+                <p className="text-gray-500">
+                  Drop an audio file here or{' '}
+                  <span className="text-blue-400 underline">browse</span>
+                </p>
+                <p className="text-xs text-gray-600 mt-1">MP3 or WAV, max 50MB</p>
+              </div>
+            )}
+            {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
+          </div>
+          {!disabled && (
             <button
-              className="mt-2 text-xs text-gray-500 hover:text-gray-300 underline"
-              onClick={() => {
-                setUrlInput('');
-                lastSubmittedUrl.current = '';
-                onClear();
-                setError(null);
-              }}
+              className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+              onClick={() => handleModeSwitch('youtube')}
             >
-              Remove
+              or paste a YouTube link instead
             </button>
           )}
+        </>
+      ) : (
+        /* YouTube URL mode */
+        <>
+          <div
+            className={`relative rounded-xl border-2 p-6 transition-colors ${
+              isYouTubeSong
+                ? 'border-green-500/50 bg-green-950/20'
+                : 'border-gray-700 bg-gray-900/50'
+            } ${disabled ? 'opacity-50 pointer-events-none' : ''}`}
+          >
+            <p className="text-sm font-medium text-gray-400 mb-3">{label}</p>
 
-          {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
-        </div>
+            <input
+              type="text"
+              className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="Paste a YouTube URL..."
+              value={urlInput}
+              onChange={handleUrlChange}
+              disabled={disabled}
+            />
+
+            {/* Loading state */}
+            {oembedLoading && urlInput && isValidYouTubeUrl(urlInput) && (
+              <p className="mt-2 text-xs text-gray-500">Fetching video info...</p>
+            )}
+
+            {/* YouTube preview */}
+            {isYouTubeSong && song.title && (
+              <div className="mt-3 flex items-start gap-3">
+                {song.thumbnailUrl && (
+                  <img
+                    src={song.thumbnailUrl}
+                    alt=""
+                    className="w-20 h-15 rounded object-cover flex-shrink-0"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-white font-medium truncate">
+                    {song.title}
+                  </p>
+                  <span className="inline-block mt-1 rounded bg-gray-800 px-2 py-0.5 text-[10px] text-gray-400">
+                    YouTube source (~128kbps)
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Clear button */}
+            {isYouTubeSong && !disabled && (
+              <button
+                className="mt-2 text-xs text-gray-500 hover:text-gray-300 underline"
+                onClick={() => {
+                  setUrlInput('');
+                  lastSubmittedUrl.current = '';
+                  onClear();
+                  setError(null);
+                }}
+              >
+                Remove
+              </button>
+            )}
+
+            {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
+          </div>
+          {!disabled && (
+            <button
+              className="text-xs text-gray-600 hover:text-gray-400 transition-colors"
+              onClick={() => handleModeSwitch('file')}
+            >
+              or upload an MP3 file instead
+            </button>
+          )}
+        </>
       )}
     </div>
   );
