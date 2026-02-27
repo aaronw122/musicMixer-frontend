@@ -21,6 +21,9 @@ export function useRemixProgress(
   const delayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const errorCountRef = useRef(0);
   const currentStepRef = useRef<string>('separating');
+  // Track the highest progress value seen so the bar never goes backward
+  // (e.g. YouTube flow: download reaches 0.45, then pipeline restarts at 0.10)
+  const maxProgressRef = useRef(0);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -40,6 +43,7 @@ export function useRemixProgress(
     const es = connectProgress(sessionId);
     eventSourceRef.current = es;
     errorCountRef.current = 0;
+    maxProgressRef.current = 0;
 
     es.onmessage = (event) => {
       errorCountRef.current = 0; // Reset on any successful message
@@ -80,7 +84,16 @@ export function useRemixProgress(
           return;
         }
 
-        dispatch({ type: 'PROGRESS_EVENT', event: data });
+        // Enforce monotonic progress: never let the bar go backward.
+        // This handles the YouTube flow where download progress (0.05-0.45)
+        // is followed by pipeline progress starting at 0.10.
+        const monotonicProgress = Math.max(maxProgressRef.current, data.progress);
+        maxProgressRef.current = monotonicProgress;
+
+        dispatch({
+          type: 'PROGRESS_EVENT',
+          event: { ...data, progress: monotonicProgress },
+        });
       } catch {
         // Malformed event -- log and ignore
         console.warn('Malformed SSE event:', event.data);

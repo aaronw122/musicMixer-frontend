@@ -13,6 +13,7 @@ const STEP_LABELS: Record<string, string> = {
   interpreting: 'Planning your remix',
   processing: 'Processing audio',
   rendering: 'Building your remix',
+  complete: 'Complete',
 };
 
 export function ProgressDisplay({ progress, onCancel }: Props) {
