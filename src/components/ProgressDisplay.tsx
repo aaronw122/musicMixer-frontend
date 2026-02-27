@@ -7,6 +7,7 @@ type Props = {
 };
 
 const STEP_LABELS: Record<string, string> = {
+  downloading: 'Downloading from YouTube',
   separating: 'Extracting stems',
   analyzing: 'Analyzing audio',
   interpreting: 'Planning your remix',

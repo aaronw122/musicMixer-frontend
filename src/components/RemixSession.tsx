@@ -4,58 +4,82 @@ import { useFormPersistence } from '../hooks/useFormPersistence';
 import { RemixForm } from './RemixForm';
 import { ProgressDisplay } from './ProgressDisplay';
 import { RemixPlayer } from './RemixPlayer';
-import { createRemix } from '../api/client';
+import { createRemix, submitYouTubeRemix } from '../api/client';
 import { useRemixProgress } from '../hooks/useRemixProgress';
 import type { CreateRemixError } from '../types';
+
+function formatError(error: CreateRemixError): string {
+  switch (error.type) {
+    case 'network':
+      return 'Request failed. Check your connection and try again.';
+    case 'timeout':
+      return 'Request timed out. Please try again.';
+    case 'http':
+      if (error.status === 429) {
+        return 'Another remix is being created. Please wait and try again.';
+      } else if (error.status === 413) {
+        return 'File too large. Maximum 50MB per song.';
+      } else if (error.status === 422) {
+        return error.body.detail || 'Invalid input. Please check your uploads.';
+      } else {
+        return error.body.detail || 'Something went wrong. Please try again.';
+      }
+    default:
+      return 'Something went wrong. Please try again.';
+  }
+}
 
 export function RemixSession() {
   const [state, dispatch] = useReducer(remixReducer, initialState);
   useFormPersistence(state, dispatch);
 
-  // Handle submission
-  const handleSubmit = useCallback(async () => {
+  // Handle file upload submission
+  const handleUpload = useCallback(async () => {
     if (state.phase !== 'uploading') return;
+    if (state.songA.type !== 'file' || state.songB.type !== 'file') return;
 
     try {
       const response = await createRemix(
-        state.songA,
-        state.songB,
+        state.songA.file,
+        state.songB.file,
         state.prompt,
         (pct) => dispatch({ type: 'UPLOAD_PROGRESS', percent: pct }),
       );
       dispatch({ type: 'UPLOAD_SUCCESS', sessionId: response.session_id });
     } catch (err) {
-      const error = err as CreateRemixError;
-      let message: string;
-      switch (error.type) {
-        case 'network':
-          message = 'Upload failed. Check your connection and try again.';
-          break;
-        case 'timeout':
-          message = 'Upload timed out. Please try again.';
-          break;
-        case 'http':
-          if (error.status === 429) {
-            message = 'Another remix is being created. Please wait and try again.';
-          } else if (error.status === 413) {
-            message = 'File too large. Maximum 50MB per song.';
-          } else if (error.status === 422) {
-            message = error.body.detail || 'Invalid file. Please check your uploads.';
-          } else {
-            message = 'Something went wrong. Please try again.';
-          }
-          break;
-        default:
-          message = 'Something went wrong. Please try again.';
-      }
-      dispatch({ type: 'ERROR', message });
+      dispatch({ type: 'ERROR', message: formatError(err as CreateRemixError) });
+    }
+  }, [state]);
+
+  // Handle YouTube URL submission
+  const handleYouTubeSubmit = useCallback(async () => {
+    if (state.phase !== 'submitting') return;
+    if (state.songA.type !== 'youtube' || state.songB.type !== 'youtube') return;
+
+    try {
+      const response = await submitYouTubeRemix(
+        state.songA.url,
+        state.songB.url,
+        state.prompt,
+      );
+      dispatch({ type: 'SUBMIT_SUCCESS', sessionId: response.session_id });
+    } catch (err) {
+      dispatch({ type: 'ERROR', message: formatError(err as CreateRemixError) });
     }
   }, [state]);
 
   // Trigger upload when entering uploading phase
   useEffect(() => {
     if (state.phase === 'uploading') {
-      handleSubmit();
+      handleUpload();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.phase]);
+
+  // Trigger YouTube submit when entering submitting phase
+  useEffect(() => {
+    if (state.phase === 'submitting') {
+      handleYouTubeSubmit();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase]);
@@ -86,6 +110,17 @@ export function RemixSession() {
           dispatch={dispatch}
           submitting={true}
           uploadProgress={state.uploadProgress}
+        />
+      );
+
+    case 'submitting':
+      return (
+        <RemixForm
+          songA={state.songA}
+          songB={state.songB}
+          prompt={state.prompt}
+          dispatch={dispatch}
+          submitting={true}
         />
       );
 
