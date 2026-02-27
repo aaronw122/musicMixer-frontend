@@ -73,6 +73,7 @@ export function RecordPlayerView({ audioUrl, remixTitle = 'Your Remix' }: Props)
     if (transitionRef.current) return;
     if (phase !== 'idle' && phase !== 'paused') return;
 
+    const previousPhase = phase;
     transitionRef.current = true;
     setPhase('playing');
 
@@ -81,8 +82,8 @@ export function RecordPlayerView({ audioUrl, remixTitle = 'Your Remix' }: Props)
       try {
         await play();
       } catch {
-        // Browser may block play — revert to idle
-        setPhase('idle');
+        // Browser blocked autoplay — revert to previous phase
+        setPhase(previousPhase);
       }
       transitionRef.current = false;
     }, TONEARM_SWING_DELAY_MS);
