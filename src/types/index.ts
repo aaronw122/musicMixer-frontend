@@ -52,6 +52,9 @@ export type AppState =
       phase: 'processing';
       sessionId: string;
       progress: ProgressEvent;
+      songA: File;
+      songB: File;
+      prompt: string;
     }
   | {
       phase: 'ready';
@@ -80,6 +83,8 @@ export type AppAction =
   | { type: 'PROGRESS_EVENT'; event: ProgressEvent }
   | { type: 'REMIX_READY'; explanation: string; warnings: string[]; usedFallback: boolean }
   | { type: 'ERROR'; message: string }
+  | { type: 'RETRY' }
+  | { type: 'CANCEL' }
   | { type: 'RESET' };
 
 // === API Error Types ===
