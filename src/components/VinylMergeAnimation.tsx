@@ -47,13 +47,16 @@ export function VinylMergeAnimation({ progress }: Props) {
   // Full opacity by 50%, persists as final visual
   const marbleOpacity = mp <= 0.2 ? 0 : Math.min(1, (mp - 0.2) / 0.3);
 
+  // Groove rings: fade in 70-90% to give the disc a "finished vinyl" look
+  const grooveOpacity = mp <= 0.7 ? 0 : Math.min(1, (mp - 0.7) / 0.2);
+
   // Completion glow
   const showGlow = mp > 0.95;
 
   // --- Update gooey filter params imperatively ---
   useEffect(() => {
     const refs = gooeyFilterRef.current;
-    if (\!refs) return;
+    if (!refs) return;
 
     // Displacement: 0 → peak 22 at 50% → settle 12 at 100%
     let displacementScale: number;
@@ -96,9 +99,9 @@ export function VinylMergeAnimation({ progress }: Props) {
   useEffect(() => {
     const turbulence = marbleTurbulenceRef.current;
     const displacement = marbleDisplacementRef.current;
-    if (\!turbulence || \!displacement) return;
+    if (!turbulence || !displacement) return;
 
-    // baseFrequency: 0.08 (rough) at 20% → 0.025 (refined) by 70%
+    // baseFrequency: 0.08 (rough) → 0.025 (mid) → 0.012 (polished)
     // Higher frequency = more chaotic, smaller features
     let baseFreq: number;
     if (mp <= 0.2) {
@@ -107,10 +110,11 @@ export function VinylMergeAnimation({ progress }: Props) {
       const t = (mp - 0.2) / 0.5;
       baseFreq = 0.08 - t * 0.055; // 0.08 → 0.025
     } else {
-      baseFreq = 0.025;
+      const t = (mp - 0.7) / 0.3;
+      baseFreq = 0.025 - t * 0.013; // 0.025 → 0.012 (continues refining)
     }
 
-    // Displacement scale: 50 (chaotic) at 20% → 30 (refined) by 70%
+    // Displacement scale: 50 (chaotic) → 30 (mid) → 15 (polished)
     let marbleDisplacement: number;
     if (mp <= 0.2) {
       marbleDisplacement = 50;
@@ -118,7 +122,8 @@ export function VinylMergeAnimation({ progress }: Props) {
       const t = (mp - 0.2) / 0.5;
       marbleDisplacement = 50 - t * 20; // 50 → 30
     } else {
-      marbleDisplacement = 30;
+      const t = (mp - 0.7) / 0.3;
+      marbleDisplacement = 30 - t * 15; // 30 → 15 (continues smoothing)
     }
 
     turbulence.setAttribute('baseFrequency', String(baseFreq));
@@ -139,7 +144,46 @@ export function VinylMergeAnimation({ progress }: Props) {
       className="relative mx-auto"
       style={{ width: svgWidth, height: svgHeight }}
     >
-      {/* Layer 3 (bottom): Marbled disc — gradient + evolving turbulence */}
+      {/* Layer 2 (bottom): Gooey blob merge — brief transition behind marble */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          width: svgWidth,
+          height: svgHeight,
+          opacity: gooeyOpacity,
+          transition: 'opacity 0.5s ease-out',
+        }}
+      >
+        <svg
+          width={svgWidth}
+          height={svgHeight}
+          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+          overflow="visible"
+          aria-hidden="true"
+        >
+          <PaintMeldFilter ref={gooeyFilterRef} />
+          <g filter="url(#paint-meld)">
+            <circle
+              cx={svgCenterX - offset}
+              cy={svgCenterY}
+              r={r}
+              fill={RED}
+              opacity={0.7}
+            />
+            <circle
+              cx={svgCenterX + offset}
+              cy={svgCenterY}
+              r={r}
+              fill={BLUE}
+              opacity={0.7}
+            />
+          </g>
+        </svg>
+      </div>
+
+      {/* Layer 3 (middle): Marbled disc — renders ABOVE gooey blob */}
       <div
         style={{
           position: 'absolute',
@@ -160,19 +204,18 @@ export function VinylMergeAnimation({ progress }: Props) {
             aria-hidden="true"
           >
             <defs>
-              {/* Multi-stop gradient: red → warm orange → indigo → blue, NO purple */}
+              {/* Natural blend: red → purple → blue (turbulence makes it marbled) */}
               <linearGradient
                 id="marble-grad"
                 x1="0"
-                y1="0"
+                y1="0.5"
                 x2="1"
-                y2="1"
+                y2="0.5"
               >
                 <stop offset="0%" stopColor={RED} />
-                <stop offset="20%" stopColor="#e84040" />
-                <stop offset="40%" stopColor="#d97706" />
-                <stop offset="60%" stopColor="#6366f1" />
-                <stop offset="80%" stopColor="#3b82f6" />
+                <stop offset="30%" stopColor="#dc2626" />
+                <stop offset="50%" stopColor="#7c3aed" />
+                <stop offset="70%" stopColor="#2563eb" />
                 <stop offset="100%" stopColor={BLUE} />
               </linearGradient>
               <filter
@@ -213,51 +256,40 @@ export function VinylMergeAnimation({ progress }: Props) {
                 filter="url(#marble-fx)"
               />
             </g>
+            {/* Groove rings — fade in during 70-100% for "finished vinyl" feel */}
+            {grooveOpacity > 0 && (
+              <g opacity={grooveOpacity}>
+                {[0.42, 0.48, 0.54, 0.60, 0.66, 0.72, 0.78, 0.84, 0.90, 0.95].map((pct) => (
+                  <circle
+                    key={pct}
+                    cx={r}
+                    cy={r}
+                    r={r * pct}
+                    fill="none"
+                    stroke="rgba(0,0,0,0.25)"
+                    strokeWidth={1}
+                  />
+                ))}
+              </g>
+            )}
+            {/* Shimmer highlight — subtle glossy reflection at 85%+ */}
+            {mp > 0.85 && (
+              <ellipse
+                cx={r * 0.65}
+                cy={r * 0.55}
+                rx={r * 0.3}
+                ry={r * 0.12}
+                fill="rgba(255,255,255,0.08)"
+                opacity={Math.min(1, (mp - 0.85) / 0.15)}
+                transform={`rotate(-30 ${r * 0.65} ${r * 0.55})`}
+              />
+            )}
             {/* Dark center label */}
             <circle cx={r} cy={r} r={r * 0.35} fill="#1a1a1a" />
             {/* Center hole */}
             <circle cx={r} cy={r} r={r * 0.08} fill="#111" />
           </svg>
         </div>
-      </div>
-
-      {/* Layer 2 (middle): Gooey blob merge — brief transition, reduced opacity */}
-      <div
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          width: svgWidth,
-          height: svgHeight,
-          opacity: gooeyOpacity,
-          transition: 'opacity 0.5s ease-out',
-        }}
-      >
-        <svg
-          width={svgWidth}
-          height={svgHeight}
-          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          overflow="visible"
-          aria-hidden="true"
-        >
-          <PaintMeldFilter ref={gooeyFilterRef} />
-          <g filter="url(#paint-meld)">
-            <circle
-              cx={svgCenterX - offset}
-              cy={svgCenterY}
-              r={r}
-              fill={RED}
-              opacity={0.7}
-            />
-            <circle
-              cx={svgCenterX + offset}
-              cy={svgCenterY}
-              r={r}
-              fill={BLUE}
-              opacity={0.7}
-            />
-          </g>
-        </svg>
       </div>
 
       {/* Layer 1 (top): Detailed vinyl records */}
