@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 type Props = {
   isPlaying: boolean;
@@ -10,39 +10,69 @@ type Props = {
 /**
  * Overlay controls that float above the record area.
  *
+ * Desktop (hover capable):
  * - Idle/Paused: large play button centered, always visible.
  * - Playing (not hovered): controls hidden.
  * - Playing (hovered): semi-transparent overlay with pause + rewind.
+ *
+ * Touch devices (no hover):
+ * - Idle/Paused: large play button centered, always visible.
+ * - Playing: tapping the turntable area pauses and reveals controls.
  */
 export function FloatingControls({ isPlaying, onPlay, onPause, onRewind }: Props) {
   const [hovered, setHovered] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Detect touch device on first touch interaction
+  useEffect(() => {
+    const handleTouchStart = () => {
+      setIsTouchDevice(true);
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { once: true, passive: true });
+    return () => window.removeEventListener('touchstart', handleTouchStart);
+  }, []);
+
+  // On touch devices: tapping the overlay while playing triggers pause
+  const handleTouchTap = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isTouchDevice) return;
+      if (!isPlaying) return;
+
+      // Prevent ghost click events
+      e.preventDefault();
+      onPause();
+    },
+    [isTouchDevice, isPlaying, onPause],
+  );
 
   const showPlayButton = !isPlaying;
-  const showHoverControls = isPlaying && hovered;
+  // On touch devices, never use hover — controls are shown via tap (which pauses)
+  // On desktop, use hover to show controls while playing
+  const showHoverControls = isPlaying && !isTouchDevice && hovered;
+
+  // On touch devices while playing, the entire overlay is a tap target
+  const overlayInteractive = isTouchDevice && isPlaying;
 
   return (
     <div
+      ref={containerRef}
       className="absolute inset-0 flex items-center justify-center"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={!isTouchDevice ? () => setHovered(true) : undefined}
+      onMouseLeave={!isTouchDevice ? () => setHovered(false) : undefined}
+      onTouchEnd={handleTouchTap}
       style={{
-        // Position over the record area (roughly centered in the SVG's platter region)
-        // The SVG platter is at ~44% from left, ~50% from top in the viewBox
-        // We cover the full SVG and let pointer events pass through except on buttons
-        pointerEvents: 'none',
+        pointerEvents: overlayInteractive ? 'auto' : 'none',
+        cursor: overlayInteractive ? 'pointer' : undefined,
       }}
     >
       {/* Play button — shown when idle/paused */}
       <div
-        className="transition-opacity duration-300 ease-in-out"
+        className="transition-opacity duration-300 ease-in-out absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
         style={{
           opacity: showPlayButton ? 1 : 0,
           pointerEvents: showPlayButton ? 'auto' : 'none',
-          // Offset slightly left to center on the platter (platter is left of center in viewBox)
-          position: 'absolute',
-          left: '44%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
         }}
       >
         <button
@@ -66,16 +96,12 @@ export function FloatingControls({ isPlaying, onPlay, onPause, onRewind }: Props
         </button>
       </div>
 
-      {/* Hover controls — shown when playing and hovered */}
+      {/* Hover controls — shown when playing and hovered (desktop only) */}
       <div
-        className="transition-opacity duration-250 ease-in-out"
+        className="transition-opacity duration-250 ease-in-out absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
         style={{
           opacity: showHoverControls ? 1 : 0,
           pointerEvents: showHoverControls ? 'auto' : 'none',
-          position: 'absolute',
-          left: '44%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
         }}
       >
         <div className="flex items-center gap-4 sm:gap-6 rounded-full bg-black/40 backdrop-blur-sm px-5 py-3">
