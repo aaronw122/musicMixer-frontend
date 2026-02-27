@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getAudioUrl } from '../api/client';
+import { RecordPlayerView } from './RecordPlayerView';
 
 type Props = {
   sessionId: string;
@@ -21,13 +22,8 @@ export function RemixPlayer({
 
   return (
     <div className="space-y-6">
-      {/* Audio player */}
-      <div className="rounded-xl border border-gray-700 bg-gray-900/50 p-6">
-        <h2 className="text-lg font-semibold text-white mb-4">Your Remix</h2>
-        <audio controls autoPlay className="w-full" src={audioUrl}>
-          Your browser does not support the audio element.
-        </audio>
-      </div>
+      {/* Record player */}
+      <RecordPlayerView audioUrl={audioUrl} />
 
       {/* Explanation */}
       <div
