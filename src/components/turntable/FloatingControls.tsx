@@ -52,9 +52,6 @@ export function FloatingControls({ isPlaying, onPlay, onPause, onRewind }: Props
   // On desktop, use hover to show controls while playing
   const showHoverControls = isPlaying && !isTouchDevice && hovered;
 
-  // On touch devices while playing, the entire overlay is a tap target
-  const overlayInteractive = isTouchDevice && isPlaying;
-
   return (
     <div
       ref={containerRef}
@@ -63,8 +60,9 @@ export function FloatingControls({ isPlaying, onPlay, onPause, onRewind }: Props
       onMouseLeave={!isTouchDevice ? () => setHovered(false) : undefined}
       onTouchEnd={handleTouchTap}
       style={{
-        pointerEvents: overlayInteractive ? 'auto' : 'none',
-        cursor: overlayInteractive ? 'pointer' : undefined,
+        // Desktop: always capture hover events. Touch: capture taps only while playing.
+        pointerEvents: isTouchDevice ? (isPlaying ? 'auto' : 'none') : 'auto',
+        cursor: isTouchDevice && isPlaying ? 'pointer' : undefined,
       }}
     >
       {/* Play button — shown when idle/paused */}
