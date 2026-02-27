@@ -87,7 +87,7 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
       return {
         phase: 'processing',
         sessionId: action.sessionId,
-        progress: { step: 'separating', detail: 'Starting...', progress: 0 },
+        progress: { step: 'separating', detail: 'Starting pipeline...', progress: 0.02 },
         songA: state.songA,
         songB: state.songB,
         prompt: state.prompt,
@@ -98,7 +98,7 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
       return {
         phase: 'processing',
         sessionId: action.sessionId,
-        progress: { step: 'downloading', detail: 'Starting download...', progress: 0 },
+        progress: { step: 'downloading', detail: 'Starting download...', progress: 0.02 },
         songA: state.songA,
         songB: state.songB,
         prompt: state.prompt,
