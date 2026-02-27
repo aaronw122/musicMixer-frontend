@@ -11,7 +11,6 @@ const MAX_OFFSET = 140;
 
 const RED = '#dc2626';
 const BLUE = '#2563eb';
-const PURPLE = '#7c3aed';
 
 export function VinylMergeAnimation({ progress }: Props) {
   const p = Math.max(0, Math.min(1, progress));
@@ -23,25 +22,30 @@ export function VinylMergeAnimation({ progress }: Props) {
 
   const gooeyFilterRef = useRef<PaintMeldRefs>(null);
 
+  // Refs for marble filter — updated imperatively so turbulence evolves
+  const marbleTurbulenceRef = useRef<SVGFETurbulenceElement>(null);
+  const marbleDisplacementRef = useRef<SVGFEDisplacementMapElement>(null);
+
   // --- Position: records reach center at ~50% ---
   const offset = MAX_OFFSET * (1 - Math.min(1, mp / 0.5));
 
   // --- Layer 1 (top): Detailed vinyl records ---
-  // Full until 50%, fade out by 80%
-  const vinylOpacity = mp <= 0.5 ? 1 : Math.max(0, 1 - (mp - 0.5) / 0.3);
+  // Full until 40%, fade out by 65%
+  const vinylOpacity = mp <= 0.4 ? 1 : Math.max(0, 1 - (mp - 0.4) / 0.25);
 
   // --- Layer 2 (middle): Gooey blob merge ---
-  // Fade in 35-55%, hold 55-65%, fade out 65-85%
+  // Reduced role — brief transition, lower peak opacity to let marble show through
+  // Fade in 40-55%, fade out 55-70%
   let gooeyOpacity: number;
-  if (mp <= 0.35) gooeyOpacity = 0;
-  else if (mp <= 0.55) gooeyOpacity = (mp - 0.35) / 0.2;
-  else if (mp <= 0.65) gooeyOpacity = 1;
-  else if (mp <= 0.85) gooeyOpacity = 1 - (mp - 0.65) / 0.2;
+  if (mp <= 0.4) gooeyOpacity = 0;
+  else if (mp <= 0.55) gooeyOpacity = ((mp - 0.4) / 0.15) * 0.5; // peak at 0.5 opacity
+  else if (mp <= 0.7) gooeyOpacity = 0.5 * (1 - (mp - 0.55) / 0.15);
   else gooeyOpacity = 0;
 
   // --- Layer 3 (bottom): Marbled disc ---
-  // Fade in 60-85%, persist as final visual
-  const marbleOpacity = mp <= 0.6 ? 0 : Math.min(1, (mp - 0.6) / 0.25);
+  // Starts early at 20% — visible as soon as records begin overlapping
+  // Full opacity by 50%, persists as final visual
+  const marbleOpacity = mp <= 0.2 ? 0 : Math.min(1, (mp - 0.2) / 0.3);
 
   // Completion glow
   const showGlow = mp > 0.95;
@@ -49,7 +53,7 @@ export function VinylMergeAnimation({ progress }: Props) {
   // --- Update gooey filter params imperatively ---
   useEffect(() => {
     const refs = gooeyFilterRef.current;
-    if (!refs) return;
+    if (\!refs) return;
 
     // Displacement: 0 → peak 22 at 50% → settle 12 at 100%
     let displacementScale: number;
@@ -86,6 +90,41 @@ export function VinylMergeAnimation({ progress }: Props) {
     );
   }, [mp]);
 
+  // --- Update marble filter params imperatively ---
+  // Turbulence evolves: starts rough/chaotic (high frequency, high displacement)
+  // and settles to a refined marble pattern
+  useEffect(() => {
+    const turbulence = marbleTurbulenceRef.current;
+    const displacement = marbleDisplacementRef.current;
+    if (\!turbulence || \!displacement) return;
+
+    // baseFrequency: 0.08 (rough) at 20% → 0.025 (refined) by 70%
+    // Higher frequency = more chaotic, smaller features
+    let baseFreq: number;
+    if (mp <= 0.2) {
+      baseFreq = 0.08;
+    } else if (mp <= 0.7) {
+      const t = (mp - 0.2) / 0.5;
+      baseFreq = 0.08 - t * 0.055; // 0.08 → 0.025
+    } else {
+      baseFreq = 0.025;
+    }
+
+    // Displacement scale: 50 (chaotic) at 20% → 30 (refined) by 70%
+    let marbleDisplacement: number;
+    if (mp <= 0.2) {
+      marbleDisplacement = 50;
+    } else if (mp <= 0.7) {
+      const t = (mp - 0.2) / 0.5;
+      marbleDisplacement = 50 - t * 20; // 50 → 30
+    } else {
+      marbleDisplacement = 30;
+    }
+
+    turbulence.setAttribute('baseFrequency', String(baseFreq));
+    displacement.setAttribute('scale', String(marbleDisplacement));
+  }, [mp]);
+
   // --- Layout ---
   const svgWidth = RECORD_SIZE + MAX_OFFSET * 2;
   const svgHeight = RECORD_SIZE;
@@ -100,7 +139,7 @@ export function VinylMergeAnimation({ progress }: Props) {
       className="relative mx-auto"
       style={{ width: svgWidth, height: svgHeight }}
     >
-      {/* Layer 3 (bottom): Marbled disc — gradient + turbulence displacement */}
+      {/* Layer 3 (bottom): Marbled disc — gradient + evolving turbulence */}
       <div
         style={{
           position: 'absolute',
@@ -121,17 +160,19 @@ export function VinylMergeAnimation({ progress }: Props) {
             aria-hidden="true"
           >
             <defs>
+              {/* Multi-stop gradient: red → warm orange → indigo → blue, NO purple */}
               <linearGradient
                 id="marble-grad"
                 x1="0"
-                y1="0.5"
+                y1="0"
                 x2="1"
-                y2="0.5"
+                y2="1"
               >
                 <stop offset="0%" stopColor={RED} />
-                <stop offset="28%" stopColor={RED} />
-                <stop offset="50%" stopColor={PURPLE} />
-                <stop offset="72%" stopColor={BLUE} />
+                <stop offset="20%" stopColor="#e84040" />
+                <stop offset="40%" stopColor="#d97706" />
+                <stop offset="60%" stopColor="#6366f1" />
+                <stop offset="80%" stopColor="#3b82f6" />
                 <stop offset="100%" stopColor={BLUE} />
               </linearGradient>
               <filter
@@ -142,16 +183,18 @@ export function VinylMergeAnimation({ progress }: Props) {
                 height="160%"
               >
                 <feTurbulence
+                  ref={marbleTurbulenceRef}
                   type="fractalNoise"
-                  baseFrequency={0.025}
-                  numOctaves={3}
+                  baseFrequency={0.08}
+                  numOctaves={4}
                   seed={7}
                   result="noise"
                 />
                 <feDisplacementMap
+                  ref={marbleDisplacementRef}
                   in="SourceGraphic"
                   in2="noise"
-                  scale={30}
+                  scale={50}
                   xChannelSelector="R"
                   yChannelSelector="G"
                 />
@@ -178,7 +221,7 @@ export function VinylMergeAnimation({ progress }: Props) {
         </div>
       </div>
 
-      {/* Layer 2 (middle): Gooey blob merge — two semi-transparent circles */}
+      {/* Layer 2 (middle): Gooey blob merge — brief transition, reduced opacity */}
       <div
         style={{
           position: 'absolute',
