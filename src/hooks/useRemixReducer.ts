@@ -41,6 +41,9 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
         phase: 'processing',
         sessionId: action.sessionId,
         progress: { step: 'separating', detail: 'Starting...', progress: 0 },
+        songA: state.songA,
+        songB: state.songB,
+        prompt: state.prompt,
       };
 
     case 'PROGRESS_EVENT':
@@ -58,17 +61,33 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
       };
 
     case 'ERROR': {
-      const songA = state.phase === 'uploading' || state.phase === 'idle' ? state.songA : null;
-      const songB = state.phase === 'uploading' || state.phase === 'idle' ? state.songB : null;
-      const prompt = state.phase === 'uploading' || state.phase === 'idle' ? state.prompt : '';
+      const hasFormData = state.phase === 'idle' || state.phase === 'uploading' || state.phase === 'processing';
       return {
-        phase: 'error',
+        phase: 'error' as const,
         message: action.message,
-        songA,
-        songB,
-        prompt,
+        songA: hasFormData ? state.songA : null,
+        songB: hasFormData ? state.songB : null,
+        prompt: hasFormData ? state.prompt : '',
       };
     }
+
+    case 'RETRY':
+      if (state.phase !== 'error') return state;
+      return {
+        phase: 'idle' as const,
+        songA: state.songA,
+        songB: state.songB,
+        prompt: state.prompt,
+      };
+
+    case 'CANCEL':
+      if (state.phase !== 'processing') return state;
+      return {
+        phase: 'idle' as const,
+        songA: state.songA,
+        songB: state.songB,
+        prompt: state.prompt,
+      };
 
     case 'RESET':
       return initialState;

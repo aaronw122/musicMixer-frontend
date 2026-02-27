@@ -1,5 +1,6 @@
 import { useReducer, useCallback, useEffect } from 'react';
 import { remixReducer, initialState } from '../hooks/useRemixReducer';
+import { useFormPersistence } from '../hooks/useFormPersistence';
 import { RemixForm } from './RemixForm';
 import { ProgressDisplay } from './ProgressDisplay';
 import { RemixPlayer } from './RemixPlayer';
@@ -9,6 +10,7 @@ import type { CreateRemixError } from '../types';
 
 export function RemixSession() {
   const [state, dispatch] = useReducer(remixReducer, initialState);
+  useFormPersistence(state, dispatch);
 
   // Handle submission
   const handleSubmit = useCallback(async () => {
@@ -91,7 +93,7 @@ export function RemixSession() {
       return (
         <ProgressDisplay
           progress={state.progress}
-          onCancel={() => dispatch({ type: 'RESET' })}
+          onCancel={() => dispatch({ type: 'CANCEL' })}
         />
       );
 
@@ -114,7 +116,7 @@ export function RemixSession() {
           </div>
           <button
             className="rounded-lg bg-gray-700 px-6 py-2 text-sm text-gray-300 hover:bg-gray-600"
-            onClick={() => dispatch({ type: 'RESET' })}
+            onClick={() => dispatch({ type: 'RETRY' })}
           >
             Try Again
           </button>
