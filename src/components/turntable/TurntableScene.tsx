@@ -41,15 +41,82 @@ export function TurntableScene({
       role="img"
     >
       <defs>
-        {/* Wood grain pattern for the plinth */}
-        <pattern id="wood-grain" width="8" height="8" patternUnits="userSpaceOnUse">
-          <rect width="8" height="8" fill="#5c3d1e" />
-          <line x1="0" y1="2" x2="8" y2="2.5" stroke="#6b4a28" strokeWidth="0.6" opacity="0.5" />
-          <line x1="0" y1="5" x2="8" y2="4.8" stroke="#4e3218" strokeWidth="0.4" opacity="0.4" />
-          <line x1="0" y1="7" x2="8" y2="7.3" stroke="#6b4a28" strokeWidth="0.3" opacity="0.3" />
-        </pattern>
+        {/* Wood grain texture filter */}
+        <filter id="woodGrain" x="0%" y="0%" width="100%" height="100%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.02 0.15"
+            numOctaves={5}
+            seed={7}
+            result="grain"
+          />
+          <feColorMatrix
+            in="grain"
+            type="matrix"
+            values="0.3 0.15 0.05 0 0.32
+                    0.2 0.12 0.03 0 0.2
+                    0.1 0.05 0.02 0 0.1
+                    0   0    0    1 0"
+            result="woodColor"
+          />
+          <feBlend in="SourceGraphic" in2="woodColor" mode="multiply" result="grained" />
+          <feComposite in="grained" in2="SourceGraphic" operator="in" />
+        </filter>
 
-        {/* Subtle groove shimmer gradient */}
+        {/* Plinth gradient — warm walnut tones */}
+        <linearGradient id="plinthGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#7A5230" />
+          <stop offset="25%" stopColor="#8B6914" />
+          <stop offset="50%" stopColor="#6B4226" />
+          <stop offset="75%" stopColor="#8B6914" />
+          <stop offset="100%" stopColor="#5C3D2E" />
+        </linearGradient>
+
+        {/* Platter rim gradient */}
+        <radialGradient id="platterGradient" cx="45%" cy="42%">
+          <stop offset="0%" stopColor="#2a2a2a" />
+          <stop offset="85%" stopColor="#1a1a1a" />
+          <stop offset="100%" stopColor="#111" />
+        </radialGradient>
+
+        {/* Marbled vinyl — red/purple/blue paint-meld gradient */}
+        <linearGradient id="marbleGradient" x1="0" y1="0.5" x2="1" y2="0.5">
+          <stop offset="0%" stopColor="#dc2626" />
+          <stop offset="28%" stopColor="#dc2626" />
+          <stop offset="50%" stopColor="#7c3aed" />
+          <stop offset="72%" stopColor="#2563eb" />
+          <stop offset="100%" stopColor="#2563eb" />
+        </linearGradient>
+
+        {/* Turbulence displacement for marble texture */}
+        <filter id="marbleFx" x="-30%" y="-30%" width="160%" height="160%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency={0.025}
+            numOctaves={3}
+            seed={7}
+            result="noise"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="noise"
+            scale={30}
+            xChannelSelector="R"
+            yChannelSelector="G"
+          />
+        </filter>
+
+        {/* Clip path for the record disc */}
+        <clipPath id="recordClip">
+          <circle cx={PLATTER_CX} cy={PLATTER_CY} r={RECORD_R - 1} />
+        </clipPath>
+
+        {/* Platter inset shadow */}
+        <filter id="platterInset" x="-5%" y="-5%" width="110%" height="110%">
+          <feDropShadow dx={0} dy={2} stdDeviation={4} floodColor="#000" floodOpacity={0.3} />
+        </filter>
+
+        {/* Groove shimmer */}
         <radialGradient id="groove-shimmer" cx="40%" cy="35%">
           <stop offset="0%" stopColor="#333" stopOpacity="0.15" />
           <stop offset="100%" stopColor="transparent" stopOpacity="0" />
@@ -63,11 +130,22 @@ export function TurntableScene({
         width={VB_W - 20}
         height={VB_H - 20}
         rx="16"
-        fill="url(#wood-grain)"
-        stroke="#3a2410"
-        strokeWidth="1.5"
+        fill="url(#plinthGradient)"
+        filter="url(#woodGrain)"
       />
-      {/* Inner bevel highlight */}
+      {/* Plinth border highlight */}
+      <rect
+        x="10"
+        y="10"
+        width={VB_W - 20}
+        height={VB_H - 20}
+        rx="16"
+        fill="none"
+        stroke="#9B7940"
+        strokeWidth={1.5}
+        opacity={0.4}
+      />
+      {/* Inner edge shadow */}
       <rect
         x="14"
         y="14"
@@ -75,7 +153,7 @@ export function TurntableScene({
         height={VB_H - 28}
         rx="13"
         fill="none"
-        stroke="rgba(255,255,255,0.06)"
+        stroke="rgba(0,0,0,0.15)"
         strokeWidth="0.8"
       />
 
@@ -84,7 +162,8 @@ export function TurntableScene({
         cx={PLATTER_CX}
         cy={PLATTER_CY}
         r={PLATTER_R}
-        fill="#1a1a1a"
+        fill="url(#platterGradient)"
+        filter="url(#platterInset)"
         stroke="#222"
         strokeWidth="1"
       />
@@ -106,35 +185,36 @@ export function TurntableScene({
           animationPlayState: isSpinning ? 'running' : 'paused',
         }}
       >
-        {/* Record body */}
-        <circle
-          cx={PLATTER_CX}
-          cy={PLATTER_CY}
-          r={RECORD_R}
-          fill="#111"
-          stroke="#222"
-          strokeWidth="0.5"
-        />
+        {/* Record body — marbled paint-meld disc */}
+        <g clipPath="url(#recordClip)">
+          <circle
+            cx={PLATTER_CX}
+            cy={PLATTER_CY}
+            r={RECORD_R * 1.4}
+            fill="url(#marbleGradient)"
+            filter="url(#marbleFx)"
+          />
+        </g>
 
-        {/* Record edge highlight */}
+        {/* Record edge ring */}
         <circle
           cx={PLATTER_CX}
           cy={PLATTER_CY}
-          r={RECORD_R - 0.5}
+          r={RECORD_R - 1}
           fill="none"
-          stroke="rgba(255,255,255,0.08)"
-          strokeWidth="0.3"
+          stroke="rgba(0,0,0,0.3)"
+          strokeWidth="1"
         />
 
-        {/* Groove rings */}
-        {[0.92, 0.85, 0.78, 0.71, 0.64, 0.57, 0.50, 0.43].map((pct) => (
+        {/* Groove rings — subtle dark lines over the marble */}
+        {[0.92, 0.87, 0.82, 0.77, 0.72, 0.67, 0.62, 0.57, 0.52, 0.47, 0.42, 0.38].map((pct) => (
           <circle
             key={pct}
             cx={PLATTER_CX}
             cy={PLATTER_CY}
             r={RECORD_R * pct}
             fill="none"
-            stroke="rgba(255,255,255,0.04)"
+            stroke="rgba(0,0,0,0.15)"
             strokeWidth="0.4"
           />
         ))}
