@@ -28,6 +28,7 @@ export function createRemix(
     };
 
     xhr.onload = () => {
+      onUploadProgress?.(100);
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(JSON.parse(xhr.responseText));
       } else {
