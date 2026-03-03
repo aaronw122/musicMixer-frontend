@@ -5,9 +5,9 @@ type Props = {
 };
 
 const EXAMPLES = [
-  "Put the vocals from Song A over Song B's beat",
-  'Song B vocals over Song A instrumentals, boost the bass',
-  'Slow it down and layer the singing over the other track',
+  'Layer the vocals over a chill beat, boost the bass',
+  'Make it sound like a club remix with heavy drums',
+  'Slow it down and keep it mellow',
 ];
 
 export function PromptInput({ value, onChange, disabled }: Props) {
