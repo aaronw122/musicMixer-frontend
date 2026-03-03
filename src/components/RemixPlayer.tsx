@@ -35,7 +35,7 @@ export function RemixPlayer({
       >
         {usedFallback && (
           <p className="text-xs text-amber-400 mb-2 font-medium">
-            Generated automatically (your prompt could not be fully interpreted)
+            Generated with automatic defaults
           </p>
         )}
         <p className="text-sm text-gray-300">{explanation}</p>

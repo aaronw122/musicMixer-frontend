@@ -46,20 +46,17 @@ export type AppState =
       phase: 'idle';
       songA: SongInput | null;
       songB: SongInput | null;
-      prompt: string;
     }
   | {
       phase: 'uploading';
       songA: SongInput;
       songB: SongInput;
-      prompt: string;
       uploadProgress: number;
     }
   | {
       phase: 'submitting';
       songA: SongInput;
       songB: SongInput;
-      prompt: string;
     }
   | {
       phase: 'processing';
@@ -67,7 +64,6 @@ export type AppState =
       progress: ProgressEvent;
       songA: SongInput;
       songB: SongInput;
-      prompt: string;
     }
   | {
       phase: 'ready';
@@ -81,7 +77,6 @@ export type AppState =
       message: string;
       songA: SongInput | null;
       songB: SongInput | null;
-      prompt: string;
     };
 
 // === Reducer Actions (discriminated union) ===
@@ -93,7 +88,6 @@ export type AppAction =
   | { type: 'SET_YOUTUBE_URL_B'; url: string; title?: string; thumbnailUrl?: string }
   | { type: 'CLEAR_SONG_A' }
   | { type: 'CLEAR_SONG_B' }
-  | { type: 'SET_PROMPT'; prompt: string }
   | { type: 'START_UPLOAD' }
   | { type: 'START_SUBMIT' }
   | { type: 'UPLOAD_PROGRESS'; percent: number }

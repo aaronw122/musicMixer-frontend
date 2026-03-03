@@ -1,12 +1,10 @@
 import { useCallback } from 'react';
 import { SongUpload } from './SongUpload';
-import { PromptInput } from './PromptInput';
 import type { AppAction, SongInput } from '../types';
 
 type Props = {
   songA: SongInput | null;
   songB: SongInput | null;
-  prompt: string;
   dispatch: React.Dispatch<AppAction>;
   submitting?: boolean;
   uploadProgress?: number;
@@ -33,13 +31,12 @@ function isAllFiles(a: SongInput | null, b: SongInput | null): boolean {
 export function RemixForm({
   songA,
   songB,
-  prompt,
   dispatch,
   submitting,
   uploadProgress,
 }: Props) {
   const canSubmit =
-    songA !== null && songB !== null && prompt.trim().length >= 5 && !submitting;
+    songA !== null && songB !== null && !submitting;
 
   const handleSubmit = useCallback(() => {
     if (!songA || !songB) return;
@@ -111,12 +108,6 @@ export function RemixForm({
         </p>
       )}
 
-      <PromptInput
-        value={prompt}
-        onChange={(p) => dispatch({ type: 'SET_PROMPT', prompt: p })}
-        disabled={submitting}
-      />
-
       {submitting && uploadProgress !== undefined && (
         <div className="space-y-1">
           <div className="h-2 rounded-full bg-gray-800 overflow-hidden">
@@ -141,11 +132,6 @@ export function RemixForm({
         {submitting ? 'Submitting...' : 'Create Remix'}
       </button>
 
-      {!effectiveCanSubmit && songA && songB && !hasMixedInput && prompt.trim().length < 5 && (
-        <p className="text-xs text-gray-500 text-center">
-          Prompt must be at least 5 characters
-        </p>
-      )}
     </div>
   );
 }
