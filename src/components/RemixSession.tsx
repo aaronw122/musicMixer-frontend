@@ -42,7 +42,6 @@ export function RemixSession() {
       const response = await createRemix(
         state.songA.file,
         state.songB.file,
-        state.prompt,
         (pct) => dispatch({ type: 'UPLOAD_PROGRESS', percent: pct }),
       );
       dispatch({ type: 'UPLOAD_SUCCESS', sessionId: response.session_id });
@@ -60,7 +59,6 @@ export function RemixSession() {
       const response = await submitYouTubeRemix(
         state.songA.url,
         state.songB.url,
-        state.prompt,
       );
       dispatch({ type: 'SUBMIT_SUCCESS', sessionId: response.session_id });
     } catch (err) {
@@ -96,7 +94,6 @@ export function RemixSession() {
         <RemixForm
           songA={state.songA}
           songB={state.songB}
-          prompt={state.prompt}
           dispatch={dispatch}
         />
       );
@@ -106,7 +103,6 @@ export function RemixSession() {
         <RemixForm
           songA={state.songA}
           songB={state.songB}
-          prompt={state.prompt}
           dispatch={dispatch}
           submitting={true}
           uploadProgress={state.uploadProgress}
@@ -118,7 +114,6 @@ export function RemixSession() {
         <RemixForm
           songA={state.songA}
           songB={state.songB}
-          prompt={state.prompt}
           dispatch={dispatch}
           submitting={true}
         />

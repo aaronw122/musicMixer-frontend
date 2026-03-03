@@ -1,10 +1,9 @@
 import { useEffect, useRef } from 'react';
 import type { AppState, AppAction, SongInput } from '../types';
 
-const DB_NAME = 'musicMixer';
+const DB_NAME = 'musicSpinner';
 const DB_VERSION = 1;
 const STORE_NAME = 'formData';
-const PROMPT_KEY = 'remix_prompt';
 const SONG_A_YT_KEY = 'remix_song_a_youtube';
 const SONG_B_YT_KEY = 'remix_song_b_youtube';
 
@@ -127,7 +126,6 @@ export function useFormPersistence(
   const restored = useRef(false);
 
   // Extract form fields safely across all phases (for use in deps)
-  const prompt = 'prompt' in state ? state.prompt : '';
   const songA = 'songA' in state ? state.songA : null;
   const songB = 'songB' in state ? state.songB : null;
 
@@ -138,8 +136,6 @@ export function useFormPersistence(
 
     async function restore() {
       try {
-        const prompt = sessionStorage.getItem(PROMPT_KEY);
-
         // Try loading files from IndexedDB
         const [fileA, fileB] = await Promise.all([loadFile('songA'), loadFile('songB')]);
 
@@ -171,23 +167,12 @@ export function useFormPersistence(
           });
         }
 
-        if (prompt) dispatch({ type: 'SET_PROMPT', prompt });
       } catch {
         // Storage unavailable — silently degrade
       }
     }
     restore();
   }, [dispatch]);
-
-  // Persist prompt changes
-  useEffect(() => {
-    if (state.phase !== 'idle' && state.phase !== 'error') return;
-    try {
-      sessionStorage.setItem(PROMPT_KEY, prompt);
-    } catch {
-      // quota exceeded — ignore
-    }
-  }, [state.phase, prompt]);
 
   // Persist song input changes (save or delete)
   useEffect(() => {
@@ -199,7 +184,6 @@ export function useFormPersistence(
   // Clear storage when remix is complete
   useEffect(() => {
     if (state.phase === 'ready') {
-      sessionStorage.removeItem(PROMPT_KEY);
       clearYouTubeUrls();
       clearFiles().catch(() => {});
     }

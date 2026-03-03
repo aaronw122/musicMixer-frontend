@@ -3,13 +3,12 @@ import type { CreateRemixResponse, SessionStatus, CreateRemixError } from '../ty
 const API_BASE = '/api';
 
 /**
- * Upload two songs and a prompt to create a remix.
+ * Upload two songs to create a remix.
  * Uses XMLHttpRequest for upload progress support.
  */
 export function createRemix(
   songA: File,
   songB: File,
-  prompt: string,
   onUploadProgress?: (pct: number) => void,
 ): Promise<CreateRemixResponse> {
   return new Promise((resolve, reject) => {
@@ -17,7 +16,6 @@ export function createRemix(
     const formData = new FormData();
     formData.append('song_a', songA);
     formData.append('song_b', songB);
-    formData.append('prompt', prompt);
 
     xhr.open('POST', `${API_BASE}/remix`);
 
@@ -50,20 +48,19 @@ export function createRemix(
 }
 
 /**
- * Submit two YouTube URLs and a prompt to create a remix.
+ * Submit two YouTube URLs to create a remix.
  * Uses JSON body (no file upload needed).
  */
 export async function submitYouTubeRemix(
   urlA: string,
   urlB: string,
-  prompt: string,
 ): Promise<CreateRemixResponse> {
   let response: Response;
   try {
     response = await fetch(`${API_BASE}/remix/youtube`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url_a: urlA, url_b: urlB, prompt }),
+      body: JSON.stringify({ url_a: urlA, url_b: urlB }),
     });
   } catch {
     throw { type: 'network' } as CreateRemixError;

@@ -4,7 +4,6 @@ export const initialState: AppState = {
   phase: 'idle',
   songA: null,
   songB: null,
-  prompt: '',
 };
 
 export function remixReducer(state: AppState, action: AppAction): AppState {
@@ -55,17 +54,12 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
       if (state.phase !== 'idle') return state;
       return { ...state, songB: null };
 
-    case 'SET_PROMPT':
-      if (state.phase !== 'idle') return state;
-      return { ...state, prompt: action.prompt };
-
     case 'START_UPLOAD':
       if (state.phase !== 'idle' || !state.songA || !state.songB) return state;
       return {
         phase: 'uploading',
         songA: state.songA,
         songB: state.songB,
-        prompt: state.prompt,
         uploadProgress: 0,
       };
 
@@ -75,7 +69,6 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
         phase: 'submitting',
         songA: state.songA,
         songB: state.songB,
-        prompt: state.prompt,
       };
 
     case 'UPLOAD_PROGRESS':
@@ -90,7 +83,6 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
         progress: { step: 'separating', detail: 'Starting pipeline...', progress: 0.02 },
         songA: state.songA,
         songB: state.songB,
-        prompt: state.prompt,
       };
 
     case 'SUBMIT_SUCCESS':
@@ -101,7 +93,6 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
         progress: { step: 'downloading', detail: 'Starting download...', progress: 0.02 },
         songA: state.songA,
         songB: state.songB,
-        prompt: state.prompt,
       };
 
     case 'PROGRESS_EVENT':
@@ -129,7 +120,6 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
         message: action.message,
         songA: hasFormData ? state.songA : null,
         songB: hasFormData ? state.songB : null,
-        prompt: hasFormData ? state.prompt : '',
       };
     }
 
@@ -139,7 +129,6 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
         phase: 'idle' as const,
         songA: state.songA,
         songB: state.songB,
-        prompt: state.prompt,
       };
 
     case 'CANCEL':
@@ -148,7 +137,6 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
         phase: 'idle' as const,
         songA: state.songA,
         songB: state.songB,
-        prompt: state.prompt,
       };
 
     case 'RESET':
