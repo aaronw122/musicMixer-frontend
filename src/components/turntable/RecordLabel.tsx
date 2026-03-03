@@ -9,6 +9,11 @@ export function RecordLabel({ remixTitle, cx, cy, radius }: Props) {
   const displayTitle =
     remixTitle.length > 28 ? remixTitle.slice(0, 25) + '...' : remixTitle;
 
+  // Arc radius for the curved brand text
+  const textR = radius * 0.68;
+  const topArcId = `label-top-${cx}-${cy}`;
+  const bottomArcId = `label-bottom-${cx}-${cy}`;
+
   return (
     <g>
       {/* Label background — amber/cream */}
@@ -22,41 +27,72 @@ export function RecordLabel({ remixTitle, cx, cy, radius }: Props) {
         stroke="#c4903a"
         strokeWidth={0.6}
       />
-      {/* Brand text */}
+
+      {/* Arc paths for curved text */}
+      <defs>
+        {/* Upper semicircle: left to right through top */}
+        <path
+          id={topArcId}
+          d={`M ${cx - textR} ${cy} A ${textR} ${textR} 0 0 1 ${cx + textR} ${cy}`}
+          fill="none"
+        />
+        {/* Lower semicircle: left to right through bottom */}
+        <path
+          id={bottomArcId}
+          d={`M ${cx - textR} ${cy} A ${textR} ${textR} 0 0 0 ${cx + textR} ${cy}`}
+          fill="none"
+        />
+      </defs>
+
+      {/* FRACTAL curving along the top */}
       <text
-        x={cx}
-        y={cy - radius * 0.18}
-        textAnchor="middle"
         fill="#2a1a0a"
-        fontSize={radius * 0.22}
+        fontSize={radius * 0.2}
         fontWeight="bold"
         fontFamily="Georgia, serif"
+        letterSpacing="0.08em"
       >
-        FRACTAL RECORDS
+        <textPath
+          href={`#${topArcId}`}
+          startOffset="50%"
+          textAnchor="middle"
+          dy="1em"
+        >
+          FRACTAL
+        </textPath>
       </text>
-      {/* Decorative line */}
-      <line
-        x1={cx - radius * 0.55}
-        y1={cy + radius * 0.02}
-        x2={cx + radius * 0.55}
-        y2={cy + radius * 0.02}
-        stroke="#2a1a0a"
-        strokeWidth={0.4}
-        opacity={0.5}
-      />
-      {/* Remix title */}
+
+      {/* RECORDS curving along the bottom */}
+      <text
+        fill="#2a1a0a"
+        fontSize={radius * 0.2}
+        fontWeight="bold"
+        fontFamily="Georgia, serif"
+        letterSpacing="0.08em"
+      >
+        <textPath
+          href={`#${bottomArcId}`}
+          startOffset="50%"
+          textAnchor="middle"
+          dy="-0.4em"
+        >
+          RECORDS
+        </textPath>
+      </text>
+
+      {/* Remix title centered */}
       <text
         x={cx}
-        y={cy + radius * 0.3}
+        y={cy + radius * 0.08}
         textAnchor="middle"
         fill="#3a2a1a"
-        fontSize={radius * 0.16}
+        fontSize={radius * 0.14}
         fontFamily="Georgia, serif"
       >
         {displayTitle}
       </text>
       {/* Center spindle hole */}
-      <circle cx={cx} cy={cy} r={radius * 0.12} fill="#1a1a1a" />
+      <circle cx={cx} cy={cy} r={radius * 0.1} fill="#1a1a1a" />
     </g>
   );
 }
