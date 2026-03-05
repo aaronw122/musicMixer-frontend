@@ -100,6 +100,34 @@ export type AppAction =
   | { type: 'CANCEL' }
   | { type: 'RESET' };
 
+// === Public Remix (Share Link) Types ===
+
+export type PublicRemixResponse = {
+  session_id: string;
+  status: 'ready';
+  audio_url: string;
+  explanation: string;
+  warnings: string[];
+  usedFallback: boolean;
+  expires_at: string;
+};
+
+export type ListenSubstate = 'loading' | 'ready' | 'invalid' | 'unavailable' | 'expired';
+
+export type ListenState =
+  | { substate: 'loading' }
+  | {
+      substate: 'ready';
+      sessionId: string;
+      explanation: string;
+      warnings: string[];
+      usedFallback: boolean;
+      expiresAt: string;
+    }
+  | { substate: 'invalid' }
+  | { substate: 'unavailable' }
+  | { substate: 'expired' };
+
 // === API Error Types ===
 
 export type CreateRemixError =

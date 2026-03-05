@@ -1,4 +1,4 @@
-import type { CreateRemixResponse, SessionStatus, CreateRemixError } from '../types';
+import type { CreateRemixResponse, SessionStatus, CreateRemixError, PublicRemixResponse } from '../types';
 
 const API_BASE = '/api';
 
@@ -102,4 +102,33 @@ export async function getSessionStatus(sessionId: string): Promise<SessionStatus
  */
 export function getAudioUrl(sessionId: string): string {
   return `${API_BASE}/remix/${sessionId}/audio`;
+}
+
+/**
+ * Fetch the public remix data for a shared link.
+ * Returns the response and HTTP status for caller to handle error states.
+ */
+export async function getPublicRemix(
+  sessionId: string,
+): Promise<{ status: number; data: PublicRemixResponse | null }> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}/remix/${sessionId}/public`);
+  } catch {
+    return { status: 0, data: null };
+  }
+
+  if (response.ok) {
+    const data: PublicRemixResponse = await response.json();
+    return { status: response.status, data };
+  }
+
+  return { status: response.status, data: null };
+}
+
+/**
+ * Build a share URL for a remix session.
+ */
+export function buildShareUrl(sessionId: string): string {
+  return `${window.location.origin}/?listen=${sessionId}`;
 }
