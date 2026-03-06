@@ -48,7 +48,9 @@ TBD. Use `console.warn` / `console.error` sparingly in dev. No logging framework
 
 ## Caching & Storage
 
-No persistent client-side storage. Remixes are ephemeral (3-hour TTL on the backend). No localStorage or IndexedDB usage planned.
+No persistent storage of server-side artifacts (session IDs, audio URLs, remix results). Remixes are ephemeral (3-hour TTL on the backend).
+
+**Form input persistence is allowed.** `useFormPersistence` uses IndexedDB for uploaded `File` objects and sessionStorage for YouTube URL inputs so users don't lose their selections on page refresh. All stored data is cleared when a remix completes.
 
 ## API Integration
 
