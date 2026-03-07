@@ -29,9 +29,18 @@ function formatError(error: CreateRemixError): string {
   }
 }
 
-export function RemixSession() {
+type SessionProps = {
+  onSessionReady?: (sessionId: string | null) => void;
+};
+
+export function RemixSession({ onSessionReady }: SessionProps) {
   const [state, dispatch] = useReducer(remixReducer, initialState);
   useFormPersistence(state, dispatch);
+
+  // Notify parent when remix is ready (or cleared)
+  useEffect(() => {
+    onSessionReady?.(state.phase === 'ready' ? state.sessionId : null);
+  }, [state.phase, state.phase === 'ready' ? state.sessionId : null, onSessionReady]);
 
   // Handle file upload submission
   const handleUpload = useCallback(async () => {

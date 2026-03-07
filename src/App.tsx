@@ -1,14 +1,22 @@
+import { useState } from 'react';
 import { RemixSession } from './components/RemixSession';
 import { ListenView } from './components/ListenView';
+import { ShareButton } from './components/ShareButton';
 import { useListenMode } from './hooks/useListenMode';
 
 function App() {
   const listenMode = useListenMode();
+  const [readySessionId, setReadySessionId] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
       <div className="mx-auto max-w-2xl px-4 py-12">
-        <header className="mb-10 text-center">
+        <header className="relative mb-10 text-center">
+          {listenMode.mode === 'create' && readySessionId && (
+            <div className="absolute right-0 top-0">
+              <ShareButton sessionId={readySessionId} />
+            </div>
+          )}
           <h1 className="text-4xl font-bold tracking-tight text-white">musicMixer</h1>
           {listenMode.mode === 'create' ? (
             <>
@@ -26,7 +34,7 @@ function App() {
           )}
         </header>
         {listenMode.mode === 'create' ? (
-          <RemixSession />
+          <RemixSession onSessionReady={setReadySessionId} />
         ) : (
           <ListenView
             state={listenMode.state}
