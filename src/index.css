@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+html {
+  min-height: 100%;
+  background-color: theme(--color-gray-950);
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
 @theme {
   --animate-vinyl-spin: vinyl-spin 3s linear infinite;
 }
