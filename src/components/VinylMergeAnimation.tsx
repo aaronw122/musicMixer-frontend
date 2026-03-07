@@ -140,8 +140,9 @@ export function VinylMergeAnimation({ progress }: Props) {
   const transitionStyle = 'left 0.5s ease-out, opacity 0.5s ease-out';
 
   return (
+    <div className="merge-animation-wrapper flex justify-center">
     <div
-      className="relative mx-auto"
+      className="relative shrink-0"
       style={{ width: svgWidth, height: svgHeight }}
     >
       {/* Layer 2 (bottom): Gooey blob merge — brief transition behind marble */}
@@ -319,6 +320,7 @@ export function VinylMergeAnimation({ progress }: Props) {
           <VinylRecord color={BLUE} size={RECORD_SIZE} />
         </div>
       </div>
+    </div>
     </div>
   );
 }
