@@ -18,7 +18,7 @@ export type ProgressEvent = {
   explanation?: string;
   warnings?: string[];
   usedFallback?: boolean;
-  key_warning?: string;
+  keyWarning?: string;
 };
 
 export type CreateRemixResponse = {

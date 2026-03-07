@@ -72,7 +72,7 @@ export function useRemixProgress(
               explanation: data.explanation ?? '',
               warnings: data.warnings ?? [],
               usedFallback: data.usedFallback ?? false,
-              keyWarning: data.key_warning,
+              keyWarning: data.keyWarning,
             });
           }, 800);
           es.close();
