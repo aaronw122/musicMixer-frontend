@@ -18,6 +18,7 @@ export type ProgressEvent = {
   explanation?: string;
   warnings?: string[];
   usedFallback?: boolean;
+  key_warning?: string;
 };
 
 export type CreateRemixResponse = {
@@ -71,6 +72,7 @@ export type AppState =
       explanation: string;
       warnings: string[];
       usedFallback: boolean;
+      keyWarning?: string;
     }
   | {
       phase: 'error';
@@ -94,7 +96,7 @@ export type AppAction =
   | { type: 'UPLOAD_SUCCESS'; sessionId: string }
   | { type: 'SUBMIT_SUCCESS'; sessionId: string }
   | { type: 'PROGRESS_EVENT'; event: ProgressEvent }
-  | { type: 'REMIX_READY'; explanation: string; warnings: string[]; usedFallback: boolean }
+  | { type: 'REMIX_READY'; explanation: string; warnings: string[]; usedFallback: boolean; keyWarning?: string }
   | { type: 'ERROR'; message: string }
   | { type: 'RETRY' }
   | { type: 'CANCEL' }

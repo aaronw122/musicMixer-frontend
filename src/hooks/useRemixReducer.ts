@@ -107,6 +107,7 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
         explanation: action.explanation,
         warnings: action.warnings,
         usedFallback: action.usedFallback,
+        keyWarning: action.keyWarning,
       };
 
     case 'ERROR': {

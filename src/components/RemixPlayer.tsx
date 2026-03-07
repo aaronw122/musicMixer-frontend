@@ -7,6 +7,7 @@ type Props = {
   explanation: string;
   warnings: string[];
   usedFallback: boolean;
+  keyWarning?: string;
   onNewRemix: () => void;
   listenMode?: boolean;
 };
@@ -16,6 +17,7 @@ export function RemixPlayer({
   explanation,
   warnings,
   usedFallback,
+  keyWarning,
   onNewRemix,
   listenMode = false,
 }: Props) {
@@ -26,6 +28,14 @@ export function RemixPlayer({
     <div className="space-y-6">
       {/* Record player */}
       <RecordPlayerView audioUrl={audioUrl} />
+
+      {/* Key warning */}
+      {keyWarning && (
+        <div className="rounded-lg border border-amber-700/40 bg-amber-950/15 px-4 py-3 flex items-start gap-2">
+          <span className="text-amber-400 text-sm leading-5">ℹ</span>
+          <p className="text-xs text-amber-300/90">{keyWarning}</p>
+        </div>
+      )}
 
       {/* Explanation */}
       <div
