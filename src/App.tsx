@@ -3,6 +3,7 @@ import { RemixSession } from './components/RemixSession';
 import { ListenView } from './components/ListenView';
 import { ShareButton } from './components/ShareButton';
 import { useListenMode } from './hooks/useListenMode';
+import soundboardImg from './assets/soundboard.png';
 
 function App() {
   const listenMode = useListenMode();
@@ -17,6 +18,11 @@ function App() {
               <ShareButton sessionId={readySessionId} />
             </div>
           )}
+          <img
+            src={soundboardImg}
+            alt="Soundboard mixer"
+            className="mx-auto mb-4 w-24 sm:w-32 drop-shadow-lg"
+          />
           <h1 className="text-4xl font-bold tracking-tight text-white">musicMixer</h1>
           {listenMode.mode === 'create' ? (
             <>
