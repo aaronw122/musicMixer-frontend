@@ -18,7 +18,7 @@ function formatError(error: CreateRemixError): string {
       if (error.status === 429) {
         return 'Another remix is being created. Please wait and try again.';
       } else if (error.status === 413) {
-        return 'File too large. Maximum 50MB per song.';
+        return error.body.detail || 'File too large. Maximum 50MB per song.';
       } else if (error.status === 422) {
         return error.body.detail || 'Invalid input. Please check your uploads.';
       } else {
