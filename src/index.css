@@ -9,6 +9,26 @@
   to { transform: rotate(360deg); }
 }
 
+/* Scale down the merge animation on narrow screens so both records fit */
+@media (max-width: 480px) {
+  .merge-animation-wrapper > div {
+    transform: scale(0.65);
+    transform-origin: center center;
+  }
+  .merge-animation-wrapper {
+    height: 98px; /* 150 * 0.65 */
+  }
+}
+@media (min-width: 481px) and (max-width: 600px) {
+  .merge-animation-wrapper > div {
+    transform: scale(0.8);
+    transform-origin: center center;
+  }
+  .merge-animation-wrapper {
+    height: 120px; /* 150 * 0.8 */
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-vinyl-spin {
     animation-play-state: paused;
