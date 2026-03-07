@@ -12,7 +12,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
       <div className="mx-auto max-w-2xl px-4 py-12">
-        <header className="relative mb-10 text-center">
+        <header className="relative mb-1 text-center">
           {listenMode.mode === 'create' && readySessionId && (
             <div className="absolute right-0 top-0">
               <ShareButton sessionId={readySessionId} />

@@ -23,12 +23,12 @@ export function ProgressDisplay({ progress, onCancel }: Props) {
   const stepLabel = STEP_LABELS[progress.step] ?? progress.step;
 
   return (
-    <div className="space-y-6 text-center">
+    <div className="space-y-10 text-center">
       <VinylMergeAnimation progress={progress.progress} />
 
       <div>
         <p className="text-lg font-medium text-white">{stepLabel}</p>
-        <p className="mt-1 text-sm text-gray-400">{progress.detail}</p>
+        <p className="mt-3 text-sm text-gray-400">{progress.detail}</p>
       </div>
 
       <div className="space-y-2">
