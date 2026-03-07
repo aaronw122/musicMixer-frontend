@@ -114,7 +114,7 @@ export type PublicRemixResponse = {
   expires_at: string;
 };
 
-export type ListenSubstate = 'loading' | 'ready' | 'invalid' | 'unavailable' | 'expired';
+export type ListenSubstate = 'loading' | 'ready' | 'processing' | 'invalid' | 'unavailable' | 'expired';
 
 export type ListenState =
   | { substate: 'loading' }
@@ -126,6 +126,7 @@ export type ListenState =
       usedFallback: boolean;
       expiresAt: string;
     }
+  | { substate: 'processing' }
   | { substate: 'invalid' }
   | { substate: 'unavailable' }
   | { substate: 'expired' };

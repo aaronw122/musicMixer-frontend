@@ -118,6 +118,10 @@ export async function getPublicRemix(
     return { status: 0, data: null };
   }
 
+  if (response.status === 202) {
+    return { status: 202, data: null };
+  }
+
   if (response.ok) {
     const data: PublicRemixResponse = await response.json();
     return { status: response.status, data };

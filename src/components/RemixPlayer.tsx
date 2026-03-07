@@ -8,9 +8,33 @@ type Props = {
   warnings: string[];
   usedFallback: boolean;
   keyWarning?: string;
+  expiresAt?: string;
   onNewRemix: () => void;
   listenMode?: boolean;
 };
+
+/**
+ * Compute a human-readable relative expiration string from an ISO 8601 timestamp.
+ * Returns null if the timestamp is invalid or already expired.
+ */
+function formatExpiresIn(expiresAt: string): string | null {
+  const expiresMs = new Date(expiresAt).getTime();
+  if (Number.isNaN(expiresMs)) return null;
+
+  const remainingMs = expiresMs - Date.now();
+  if (remainingMs <= 0) return null;
+
+  const remainingMinutes = Math.round(remainingMs / 60_000);
+
+  if (remainingMinutes < 1) return 'less than a minute';
+  if (remainingMinutes < 60) return `${remainingMinutes} minute${remainingMinutes === 1 ? '' : 's'}`;
+
+  const hours = Math.floor(remainingMinutes / 60);
+  const minutes = remainingMinutes % 60;
+
+  if (minutes === 0) return `${hours} hour${hours === 1 ? '' : 's'}`;
+  return `${hours} hour${hours === 1 ? '' : 's'} ${minutes} minute${minutes === 1 ? '' : 's'}`;
+}
 
 export function RemixPlayer({
   sessionId,
@@ -18,6 +42,7 @@ export function RemixPlayer({
   warnings,
   usedFallback,
   keyWarning,
+  expiresAt,
   onNewRemix,
   listenMode = false,
 }: Props) {
@@ -69,7 +94,9 @@ export function RemixPlayer({
 
       {/* Expiration notice */}
       <p className="text-xs text-gray-600 text-center">
-        This remix will expire in approximately 3 hours.
+        {expiresAt
+          ? `This remix will expire in ${formatExpiresIn(expiresAt) ?? 'approximately 3 hours'}.`
+          : 'This remix will expire in approximately 3 hours.'}
       </p>
 
       {/* New remix button */}
