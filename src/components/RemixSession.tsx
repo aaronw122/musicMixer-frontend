@@ -132,6 +132,7 @@ export function RemixSession({ onSessionReady }: SessionProps) {
       return (
         <ProgressDisplay
           progress={state.progress}
+          sessionId={state.sessionId}
           onCancel={() => dispatch({ type: 'CANCEL' })}
         />
       );

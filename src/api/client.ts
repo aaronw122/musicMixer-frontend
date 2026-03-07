@@ -127,6 +127,27 @@ export async function getPublicRemix(
 }
 
 /**
+ * Register a phone number for SMS notification when a remix is ready.
+ */
+export async function registerSmsNotification(
+  sessionId: string,
+  phone: string,
+): Promise<{ status: string }> {
+  const response = await fetch(`${API_BASE}/remix/${sessionId}/notify-sms`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone }),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({ detail: 'Request failed' }));
+    throw new Error(body.detail || `SMS registration failed (${response.status})`);
+  }
+
+  return response.json();
+}
+
+/**
  * Build a share URL for a remix session.
  */
 export function buildShareUrl(sessionId: string): string {
