@@ -143,6 +143,7 @@ export function RemixSession({ onSessionReady }: SessionProps) {
           explanation={state.explanation}
           warnings={state.warnings}
           usedFallback={state.usedFallback}
+          keyWarning={state.keyWarning}
           onNewRemix={() => dispatch({ type: 'RESET' })}
         />
       );
