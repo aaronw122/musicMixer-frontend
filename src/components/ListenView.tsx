@@ -41,6 +41,18 @@ export function ListenView({ state, onCreateRemix }: Props) {
         </div>
       );
 
+    case 'processing':
+      return (
+        <div className="text-center py-12 space-y-4">
+          <div className="inline-block h-8 w-8 animate-pulse rounded-full bg-blue-400/60" />
+          <p className="text-sm text-gray-300">Your remix is still being created</p>
+          <p className="text-xs text-gray-500">
+            We'll load it automatically when it's ready. Check back soon if this page
+            closes.
+          </p>
+        </div>
+      );
+
     case 'ready':
       return (
         <RemixPlayer
@@ -48,6 +60,7 @@ export function ListenView({ state, onCreateRemix }: Props) {
           explanation={state.explanation}
           warnings={state.warnings}
           usedFallback={state.usedFallback}
+          expiresAt={state.expiresAt}
           onNewRemix={onCreateRemix}
           listenMode={true}
         />

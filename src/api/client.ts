@@ -118,12 +118,37 @@ export async function getPublicRemix(
     return { status: 0, data: null };
   }
 
+  if (response.status === 202) {
+    return { status: 202, data: null };
+  }
+
   if (response.ok) {
     const data: PublicRemixResponse = await response.json();
     return { status: response.status, data };
   }
 
   return { status: response.status, data: null };
+}
+
+/**
+ * Register a phone number for SMS notification when a remix is ready.
+ */
+export async function registerSmsNotification(
+  sessionId: string,
+  phone: string,
+): Promise<{ status: string }> {
+  const response = await fetch(`${API_BASE}/remix/${sessionId}/notify-sms`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone }),
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({ detail: 'Request failed' }));
+    throw new Error(body.detail || `SMS registration failed (${response.status})`);
+  }
+
+  return response.json();
 }
 
 /**
