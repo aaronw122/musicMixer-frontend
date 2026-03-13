@@ -23,20 +23,27 @@ const STEP_LABELS: Record<string, string> = {
 
 const STEP_ORDER = ['downloading', 'separating', 'analyzing', 'interpreting', 'processing', 'rendering', 'complete'];
 
-function stripPhone(value: string): string {
-  return value.replace(/[\s\-().]/g, '');
+/** Extract raw digits from formatted input. */
+function digitsOnly(value: string): string {
+  return value.replace(/\D/g, '');
 }
 
-function validatePhone(raw: string): { valid: boolean; hint: string } {
-  const stripped = stripPhone(raw);
-  if (!stripped) return { valid: false, hint: '' };
-  if (/^\d{10}$/.test(stripped)) {
-    return { valid: false, hint: 'Add +1 before your number for US numbers' };
-  }
-  if (/^\+\d{10,15}$/.test(stripped)) {
-    return { valid: true, hint: '' };
-  }
-  return { valid: false, hint: '' };
+/** Format up to 10 digits as (XXX) XXX-XXXX. */
+function formatUsPhone(digits: string): string {
+  const d = digits.slice(0, 10);
+  if (d.length === 0) return '';
+  if (d.length <= 3) return `(${d}`;
+  if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+}
+
+/** Convert display value to E.164 for the API. */
+function toE164(digits: string): string {
+  return `+1${digits.slice(0, 10)}`;
+}
+
+function validatePhone(digits: string): boolean {
+  return digits.length === 10;
 }
 
 function SmsIcon() {
@@ -65,24 +72,31 @@ function SmsDialog({
   onClose: () => void;
   onConfirmed: () => void;
 }) {
-  const [phone, setPhone] = useState('');
+  const [digits, setDigits] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
 
-  const { valid, hint } = validatePhone(phone);
+  const valid = validatePhone(digits);
+  const display = formatUsPhone(digits);
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = digitsOnly(e.target.value);
+    setDigits(raw.slice(0, 10));
+    setError('');
+  }, []);
 
   const handleSubmit = useCallback(async () => {
     if (!valid) return;
     setSending(true);
     setError('');
     try {
-      await registerSmsNotification(sessionId, stripPhone(phone));
+      await registerSmsNotification(sessionId, toE164(digits));
       onConfirmed();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Try again.');
       setSending(false);
     }
-  }, [sessionId, phone, valid, onConfirmed]);
+  }, [sessionId, digits, valid, onConfirmed]);
 
   return (
     <div
@@ -96,25 +110,21 @@ function SmsDialog({
           We'll text you when your remix is ready
         </p>
 
-        <input
-          type="tel"
-          inputMode="tel"
-          autoFocus
-          placeholder="+1 (555) 123-4567"
-          value={phone}
-          onChange={(e) => {
-            setPhone(e.target.value);
-            setError('');
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && valid && !sending) handleSubmit();
-          }}
-          className="w-full rounded-lg bg-gray-800 border border-gray-600 px-4 py-3 text-white text-center text-lg placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-        />
-
-        {hint && (
-          <p className="mt-2 text-xs text-amber-400 text-center">{hint}</p>
-        )}
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg select-none">+1</span>
+          <input
+            type="tel"
+            inputMode="tel"
+            autoFocus
+            placeholder="(555) 123-4567"
+            value={display}
+            onChange={handleChange}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && valid && !sending) handleSubmit();
+            }}
+            className="w-full rounded-lg bg-gray-800 border border-gray-600 pl-12 pr-4 py-3 text-white text-lg placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
 
         {error && (
           <p className="mt-2 text-xs text-red-400 text-center">{error}</p>
