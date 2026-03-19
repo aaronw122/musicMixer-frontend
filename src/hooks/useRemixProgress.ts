@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { connectProgress } from '../api/client';
+import { connectProgress, getSessionStatus } from '../api/client';
 import type { AppAction, ProgressEvent } from '../types';
 
 const TIMEOUT_BY_STEP: Record<string, number> = {
@@ -31,7 +31,37 @@ export function useRemixProgress(
     const resetTimeout = () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       const ms = TIMEOUT_BY_STEP[currentStepRef.current] ?? DEFAULT_TIMEOUT;
-      timeoutRef.current = setTimeout(() => {
+      timeoutRef.current = setTimeout(async () => {
+        // Before showing an error, check if the pipeline actually finished.
+        // Mobile Safari suspends timers when backgrounded — the timeout can
+        // fire immediately on return even though the backend completed fine.
+        try {
+          const status = await getSessionStatus(sessionId);
+          if (status.status === 'complete' && status.last_event) {
+            dispatch({
+              type: 'PROGRESS_EVENT',
+              event: { step: 'rendering', detail: 'Complete!', progress: 1.0 },
+            });
+            delayTimeoutRef.current = setTimeout(() => {
+              dispatch({
+                type: 'REMIX_READY',
+                explanation: status.last_event?.explanation ?? '',
+                warnings: status.last_event?.warnings ?? [],
+                usedFallback: status.last_event?.usedFallback ?? false,
+                keyWarning: status.last_event?.keyWarning,
+              });
+            }, 800);
+            eventSourceRef.current?.close();
+            return;
+          }
+          if (status.status === 'processing' || status.status === 'queued') {
+            // Still running — reset timeout and let SSE continue
+            resetTimeout();
+            return;
+          }
+        } catch {
+          // Status endpoint unreachable — fall through to error
+        }
         dispatch({
           type: 'ERROR',
           message: 'Processing is taking longer than expected. Please try again.',
@@ -101,9 +131,32 @@ export function useRemixProgress(
       }
     };
 
-    es.onerror = () => {
+    es.onerror = async () => {
       errorCountRef.current++;
       if (errorCountRef.current >= 5) {
+        // Before giving up, check if the pipeline finished while we were disconnected
+        try {
+          const status = await getSessionStatus(sessionId);
+          if (status.status === 'complete' && status.last_event) {
+            dispatch({
+              type: 'PROGRESS_EVENT',
+              event: { step: 'rendering', detail: 'Complete!', progress: 1.0 },
+            });
+            delayTimeoutRef.current = setTimeout(() => {
+              dispatch({
+                type: 'REMIX_READY',
+                explanation: status.last_event?.explanation ?? '',
+                warnings: status.last_event?.warnings ?? [],
+                usedFallback: status.last_event?.usedFallback ?? false,
+                keyWarning: status.last_event?.keyWarning,
+              });
+            }, 800);
+            es.close();
+            return;
+          }
+        } catch {
+          // Status endpoint unreachable — fall through to error
+        }
         dispatch({
           type: 'ERROR',
           message: 'Lost connection to the server. Please try again.',
