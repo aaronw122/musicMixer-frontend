@@ -26,12 +26,11 @@ export type CreateRemixResponse = {
 };
 
 export type SessionStatus = {
-  status: 'processing' | 'complete' | 'error';
-  progress?: number;
-  detail?: string;
-  explanation?: string;
-  warnings?: string[];
-  usedFallback?: boolean;
+  session_id: string;
+  status: 'processing' | 'complete' | 'error' | 'cancelled' | 'queued';
+  remix_path: string | null;
+  explanation: string | null;
+  last_event: ProgressEvent | null;
 };
 
 // === Song Input Types ===
