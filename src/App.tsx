@@ -39,11 +39,11 @@ function App() {
       </div>
       <footer className="py-6 text-center text-xs text-gray-600">
         <div className="flex items-center justify-center gap-3">
-          <a href="/about.html" className="hover:text-gray-400 transition-colors">About</a>
+          <a href="/about" className="hover:text-gray-400 transition-colors">About</a>
           <span>·</span>
-          <a href="/terms.html" className="hover:text-gray-400 transition-colors">Terms</a>
+          <a href="/terms" className="hover:text-gray-400 transition-colors">Terms</a>
           <span>·</span>
-          <a href="/privacy.html" className="hover:text-gray-400 transition-colors">Privacy</a>
+          <a href="/privacy" className="hover:text-gray-400 transition-colors">Privacy</a>
         </div>
         <p className="mt-1">&copy; 2026 musicMixer</p>
       </footer>
