@@ -139,8 +139,10 @@ function SmsDialog({
         </button>
 
         <p className="mt-4 text-[11px] text-gray-500 text-center leading-relaxed">
-          By entering your number, you agree to receive up to two texts from musicMixer about this remix.
-          Standard messaging rates apply.{' '}
+          By clicking Send, I consent to receive SMS notifications &amp; alerts
+          from <strong className="text-gray-400">musicMixer</strong>.
+          Message frequency varies. Msg &amp; data rates may apply.
+          Reply STOP to unsubscribe at any time.{' '}
           <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-400">Terms</a>
           {' & '}
           <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-400">Privacy</a>.
