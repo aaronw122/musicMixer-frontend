@@ -2,25 +2,8 @@ import { useState } from 'react';
 import { RemixSession } from './components/RemixSession';
 import { ListenView } from './components/ListenView';
 import { ShareButton } from './components/ShareButton';
-import { DJBoard } from './components/DJBoard';
 import { useListenMode } from './hooks/useListenMode';
 import soundboardImg from './assets/soundboard.png';
-
-/** Placeholder slot shown for deck/mix areas until real components are wired. */
-function PlaceholderSlot({ label }: { label: string }) {
-  return (
-    <div
-      className="flex items-center justify-center rounded-xl border-2 border-dashed p-6 md:p-8 text-sm font-medium select-none"
-      style={{
-        borderColor: 'rgba(255,255,255,0.2)',
-        color: 'rgba(255,255,255,0.4)',
-        minHeight: '160px',
-      }}
-    >
-      {label}
-    </div>
-  );
-}
 
 function App() {
   const listenMode = useListenMode();
@@ -50,16 +33,7 @@ function App() {
         </header>
 
         {listenMode.mode === 'create' ? (
-          <DJBoard
-            deckA={<PlaceholderSlot label="Deck A" />}
-            deckB={<PlaceholderSlot label="Deck B" />}
-            mixControls={<PlaceholderSlot label="Mix" />}
-          >
-            {/* Existing RemixSession lives below the board for now */}
-            <div className="w-full max-w-2xl">
-              <RemixSession onSessionReady={setReadySessionId} />
-            </div>
-          </DJBoard>
+          <RemixSession onSessionReady={setReadySessionId} />
         ) : (
           <ListenView
             state={listenMode.state}
