@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react';
 
 interface DJBoardProps {
-  deckA: ReactNode;
-  deckB: ReactNode;
-  mixControls: ReactNode;
+  deckA?: ReactNode;
+  deckB?: ReactNode;
+  mixControls?: ReactNode;
+  /** Content rendered inside the board surface, replacing the deck grid (for processing/ready/error phases) */
+  centerContent?: ReactNode;
   children?: ReactNode;
 }
 
@@ -13,8 +15,13 @@ interface DJBoardProps {
  *
  * Desktop (>=768px): CSS Grid with deckA | mixControls | deckB
  * Mobile (<768px): Flex column stack with proportionally sized decks
+ *
+ * When `centerContent` is provided, the deck grid is hidden and the center
+ * content fills the board surface. Used for processing, playback, and error phases.
  */
-export function DJBoard({ deckA, deckB, mixControls, children }: DJBoardProps) {
+export function DJBoard({ deckA, deckB, mixControls, centerContent, children }: DJBoardProps) {
+  const showDecks = !centerContent && (deckA || deckB || mixControls);
+
   return (
     <div className="flex flex-col items-center gap-6">
       {/* Board surface */}
@@ -68,19 +75,29 @@ export function DJBoard({ deckA, deckB, mixControls, children }: DJBoardProps) {
 
         {/* Content layer */}
         <div className="relative z-10 p-4 md:p-6 lg:p-8">
-          {/* Desktop layout: grid with 3 columns */}
-          <div className="hidden md:grid md:grid-cols-[1fr_auto_1fr] md:gap-4 lg:gap-6 md:items-start">
-            <div className="min-w-0">{deckA}</div>
-            <div className="flex items-center self-stretch">{mixControls}</div>
-            <div className="min-w-0">{deckB}</div>
-          </div>
+          {showDecks && (
+            <>
+              {/* Desktop layout: grid with 3 columns */}
+              <div className="hidden md:grid md:grid-cols-[1fr_auto_1fr] md:gap-4 lg:gap-6 md:items-start">
+                <div className="min-w-0">{deckA}</div>
+                <div className="flex items-center self-stretch">{mixControls}</div>
+                <div className="min-w-0">{deckB}</div>
+              </div>
 
-          {/* Mobile layout: stacked flex column */}
-          <div className="flex flex-col items-center gap-4 md:hidden">
-            <div className="w-[80%] max-w-sm">{deckA}</div>
-            <div className="w-[80%] max-w-sm">{deckB}</div>
-            <div className="w-[80%] max-w-sm">{mixControls}</div>
-          </div>
+              {/* Mobile layout: stacked flex column */}
+              <div className="flex flex-col items-center gap-4 md:hidden">
+                <div className="w-[80%] max-w-sm">{deckA}</div>
+                <div className="w-[80%] max-w-sm">{deckB}</div>
+                <div className="w-[80%] max-w-sm">{mixControls}</div>
+              </div>
+            </>
+          )}
+
+          {centerContent && (
+            <div className="flex flex-col items-center">
+              {centerContent}
+            </div>
+          )}
         </div>
       </div>
 
