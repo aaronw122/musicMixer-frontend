@@ -302,11 +302,11 @@ export function RemixSession({ onSessionReady }: SessionProps) {
         <DJBoard
           centerContent={
             <div className="w-full max-w-md mx-auto text-center space-y-4 py-4">
-              <div className="rounded-lg border border-red-800/50 bg-red-950/30 p-6">
-                <p className="text-red-300">{state.message}</p>
+              <div className="rounded-lg border border-amber-700/50 bg-amber-950/25 p-6">
+                <p className="text-amber-200/80">{state.message}</p>
               </div>
               <button
-                className="rounded-lg bg-amber-700 px-6 py-2 text-sm text-white hover:bg-amber-600 transition-colors"
+                className="rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 px-6 py-3 text-sm font-medium text-amber-50 hover:from-amber-500 hover:to-amber-700 transition-colors min-h-[44px]"
                 onClick={() => dispatch({ type: 'RETRY' })}
               >
                 Try Again

@@ -295,9 +295,9 @@ export function TurntableScene({
         </g>
       )}
 
-      {/* === Empty platter dots (subtle indication of empty state) === */}
+      {/* === Empty platter hint (guides first-time users) === */}
       {isEmpty && (
-        <g opacity="0.15">
+        <g opacity="0.2">
           {/* Center spindle dot on bare platter */}
           <circle cx={PLATTER_CX} cy={PLATTER_CY} r={3} fill="#555" />
           {/* Platter mat rings */}
@@ -317,6 +317,29 @@ export function TurntableScene({
             stroke="#333"
             strokeWidth="0.5"
           />
+          {/* Music note icon hint */}
+          <text
+            x={PLATTER_CX}
+            y={PLATTER_CY - 8}
+            textAnchor="middle"
+            fill="#aaa"
+            fontSize="28"
+            fontFamily="serif"
+            aria-hidden="true"
+          >
+            &#9835;
+          </text>
+          {/* "Drop a track" hint text */}
+          <text
+            x={PLATTER_CX}
+            y={PLATTER_CY + 20}
+            textAnchor="middle"
+            fill="#999"
+            fontSize="11"
+            fontFamily="system-ui, sans-serif"
+          >
+            Drop a track
+          </text>
         </g>
       )}
 

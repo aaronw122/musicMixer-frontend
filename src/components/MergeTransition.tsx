@@ -4,6 +4,23 @@ import { AlbumMeldCanvas } from './AlbumMeldCanvas';
 import { ProgressDisplay } from './ProgressDisplay';
 import type { ProgressEvent, SongInput } from '../types';
 
+/** Hook to track prefers-reduced-motion preference. */
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  return reduced;
+}
+
 type Props = {
   songA: SongInput;
   songB: SongInput;
@@ -53,10 +70,15 @@ export function MergeTransition({
   uploadProgress,
   isPreProcessing,
 }: Props) {
-  const [mergePhase, setMergePhase] = useState<MergePhase>('lift');
+  const reducedMotion = usePrefersReducedMotion();
+  const [mergePhase, setMergePhase] = useState<MergePhase>(reducedMotion ? 'meld' : 'lift');
 
-  // Drive animation phases with timers
+  // Drive animation phases with timers (skipped entirely for reduced-motion)
   useEffect(() => {
+    if (reducedMotion) {
+      setMergePhase('meld');
+      return;
+    }
     setMergePhase('lift');
     const slideTimer = setTimeout(() => setMergePhase('slide'), 600);
     const meldTimer = setTimeout(() => setMergePhase('meld'), 1400);
@@ -64,7 +86,7 @@ export function MergeTransition({
       clearTimeout(slideTimer);
       clearTimeout(meldTimer);
     };
-  }, []);
+  }, [reducedMotion]);
 
   const thumbA = getThumbnailUrl(songA);
   const thumbB = getThumbnailUrl(songB);
@@ -87,15 +109,18 @@ export function MergeTransition({
     ? { step: 'uploading' as const, detail: 'Uploading your songs...', progress: (uploadProgress ?? 0) / 100 }
     : progress;
 
+  // Responsive meld canvas size: smaller on mobile
+  const meldSize = typeof window !== 'undefined' && window.innerWidth < 480 ? 160 : 220;
+
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-4 sm:gap-6">
       {/* Visual merge area */}
-      <div className="relative w-full max-w-2xl mx-auto" style={{ minHeight: 200 }}>
+      <div className="relative w-full max-w-2xl mx-auto" style={{ minHeight: meldSize }}>
         {/* Turntable records during lift/slide */}
         {showTurntables && (
-          <div className="flex justify-center items-center gap-4">
+          <div className="flex justify-center items-center gap-2 sm:gap-4">
             <div
-              className={`w-32 h-32 sm:w-40 sm:h-40 transition-all duration-600 ease-out ${liftClass} ${slideClassA}`}
+              className={`w-24 h-24 sm:w-40 sm:h-40 transition-all duration-600 ease-out ${liftClass} ${slideClassA}`}
             >
               <TurntableScene
                 remixTitle=""
@@ -106,7 +131,7 @@ export function MergeTransition({
               />
             </div>
             <div
-              className={`w-32 h-32 sm:w-40 sm:h-40 transition-all duration-600 ease-out ${liftClass} ${slideClassB}`}
+              className={`w-24 h-24 sm:w-40 sm:h-40 transition-all duration-600 ease-out ${liftClass} ${slideClassB}`}
             >
               <TurntableScene
                 remixTitle=""
@@ -129,7 +154,7 @@ export function MergeTransition({
               imageA={thumbA || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><rect fill="%23555" width="1" height="1"/></svg>'}
               imageB={thumbB || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"><rect fill="%23333" width="1" height="1"/></svg>'}
               progress={effectiveProgress.progress}
-              size={220}
+              size={meldSize}
               className="rounded-full overflow-hidden shadow-2xl merge-meld-appear"
             />
           </div>
@@ -217,12 +242,12 @@ function SmsDialog({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-sm mx-4 rounded-2xl bg-gray-900 border border-gray-700/50 p-6 shadow-2xl">
-        <p className="text-center text-white text-base font-medium mb-5">
+      <div className="w-full max-w-sm mx-4 rounded-2xl border p-6 shadow-2xl" style={{ backgroundColor: 'var(--board-bg)', borderColor: 'var(--board-border)' }}>
+        <p className="text-center text-amber-50 text-base font-medium mb-5">
           We'll text you when your remix is ready
         </p>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg select-none">+1</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-200/50 text-lg select-none">+1</span>
           <input
             type="tel"
             inputMode="tel"
@@ -244,10 +269,10 @@ function SmsDialog({
                   });
               }
             }}
-            className="w-full rounded-lg bg-gray-800 border border-gray-600 pl-12 pr-4 py-3 text-white text-lg placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg bg-black/30 border border-amber-800/50 pl-12 pr-4 py-3 text-amber-50 text-lg placeholder-amber-200/30 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
           />
         </div>
-        {error && <p className="mt-2 text-xs text-red-400 text-center">{error}</p>}
+        {error && <p className="mt-2 text-xs text-amber-400 text-center">{error}</p>}
         <button
           disabled={!valid || sending}
           onClick={() => {
@@ -260,18 +285,18 @@ function SmsDialog({
                 setSending(false);
               });
           }}
-          className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="mt-4 w-full rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 px-4 py-3 text-sm font-medium text-amber-50 transition-colors hover:from-amber-500 hover:to-amber-700 disabled:opacity-40 disabled:cursor-not-allowed min-h-[44px]"
         >
           {sending ? 'Sending...' : 'Send'}
         </button>
-        <p className="mt-4 text-[11px] text-gray-500 text-center leading-relaxed">
+        <p className="mt-4 text-[11px] text-amber-200/30 text-center leading-relaxed">
           By clicking Send, I consent to receive SMS notifications &amp; alerts
-          from <strong className="text-gray-400">musicMixer</strong>.
+          from <strong className="text-amber-200/50">musicMixer</strong>.
           Message frequency varies. Msg &amp; data rates may apply.
           Reply STOP to unsubscribe at any time.{' '}
-          <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-400">Terms</a>
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-200/50">Terms</a>
           {' & '}
-          <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-400">Privacy</a>.
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-200/50">Privacy</a>.
         </p>
       </div>
     </div>

@@ -84,11 +84,11 @@ export function DJBoard({ deckA, deckB, mixControls, centerContent, children }: 
                 <div className="min-w-0">{deckB}</div>
               </div>
 
-              {/* Mobile layout: stacked flex column */}
-              <div className="flex flex-col items-center gap-4 md:hidden">
-                <div className="w-[80%] max-w-sm">{deckA}</div>
-                <div className="w-[80%] max-w-sm">{deckB}</div>
-                <div className="w-[80%] max-w-sm">{mixControls}</div>
+              {/* Mobile layout: stacked flex column with proportional turntable sizing */}
+              <div className="flex flex-col items-center gap-3 md:hidden">
+                <div className="w-[65%] max-w-xs">{deckA}</div>
+                <div className="w-[65%] max-w-xs">{deckB}</div>
+                <div className="w-[75%] max-w-xs sticky bottom-3 z-20">{mixControls}</div>
               </div>
             </>
           )}

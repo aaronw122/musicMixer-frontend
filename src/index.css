@@ -112,7 +112,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-vinyl-spin,
   .deck-idle-spin {
-    animation-play-state: paused;
+    animation: none;
   }
 
   .mix-button-pulse,
@@ -125,5 +125,12 @@ body {
   .merge-slide-left,
   .merge-slide-right {
     transform: none;
+  }
+
+  /* Disable all transitions and animations globally for reduced-motion users */
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
