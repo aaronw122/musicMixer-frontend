@@ -133,6 +133,7 @@ export function RecordPlayerView({ audioUrl, remixTitle = 'Your Remix' }: Props)
             remixTitle={remixTitle}
             tonearmAngle={tonearmAngle}
             isSpinning={isSpinning}
+            deckId="main"
           />
         </div>
 
