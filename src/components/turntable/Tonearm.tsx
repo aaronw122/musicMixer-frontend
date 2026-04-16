@@ -7,14 +7,18 @@ type Props = {
   angle: number;
   /** Length scaling factor for the tonearm */
   scale: number;
+  /** Unique deck identifier for SVG ID namespacing */
+  deckId?: string;
 };
 
-export function Tonearm({ pivotX, pivotY, angle, scale }: Props) {
+export function Tonearm({ pivotX, pivotY, angle, scale, deckId = 'default' }: Props) {
   // Arm dimensions relative to scale
   const armLength = 130 * scale;
   const headLength = 18 * scale;
   const armWidth = 4 * scale;
   const counterweightR = 6 * scale;
+
+  const metalGradientId = `tonearm-metal-${deckId}`;
 
   return (
     <g
@@ -51,7 +55,7 @@ export function Tonearm({ pivotX, pivotY, angle, scale }: Props) {
 
       {/* Main arm — brushed metal gradient */}
       <defs>
-        <linearGradient id="tonearm-metal" x1="0" y1="0" x2="1" y2="0">
+        <linearGradient id={metalGradientId} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%" stopColor="#b0b0b0" />
           <stop offset="40%" stopColor="#d8d8d8" />
           <stop offset="60%" stopColor="#c0c0c0" />
@@ -63,7 +67,7 @@ export function Tonearm({ pivotX, pivotY, angle, scale }: Props) {
         y1={pivotY}
         x2={pivotX - armLength * 0.25}
         y2={pivotY + armLength * 0.92}
-        stroke="url(#tonearm-metal)"
+        stroke={`url(#${metalGradientId})`}
         strokeWidth={armWidth}
         strokeLinecap="round"
       />
