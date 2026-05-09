@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TurntableScene } from './turntable';
 import { AlbumMeldCanvas } from './AlbumMeldCanvas';
-import { ProgressDisplay } from './ProgressDisplay';
 import type { ProgressEvent, SongInput } from '../types';
 
 /** Hook to track prefers-reduced-motion preference. */

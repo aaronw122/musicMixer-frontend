@@ -4,7 +4,6 @@ import type { SongInput } from '../types';
 type InputMode = 'file' | 'youtube';
 
 type Props = {
-  label: string;
   song: SongInput | null;
   onFileChange: (file: File | null) => void;
   onYouTubeUrl: (url: string, title?: string, thumbnailUrl?: string) => void;
@@ -63,7 +62,6 @@ function useOEmbed(url: string) {
 }
 
 export function SongUpload({
-  label,
   song,
   onFileChange,
   onYouTubeUrl,

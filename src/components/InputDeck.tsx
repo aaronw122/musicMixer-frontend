@@ -139,7 +139,6 @@ export function InputDeck({ deckId, label, song, dispatch, disabled }: Props) {
 
       {/* Song input */}
       <SongUpload
-        label={label}
         song={song}
         onFileChange={handleFileChange}
         onYouTubeUrl={handleYouTubeUrl}

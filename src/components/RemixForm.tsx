@@ -71,7 +71,6 @@ export function RemixForm({
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <SongUpload
-          label="Grab vocals from..."
           song={songA}
           onFileChange={(f) => dispatch({ type: 'SET_SONG_A', file: f })}
           onYouTubeUrl={(url, title, thumbnailUrl) =>
@@ -81,7 +80,6 @@ export function RemixForm({
           disabled={submitting}
         />
         <SongUpload
-          label="Use instrumentals from..."
           song={songB}
           onFileChange={(f) => dispatch({ type: 'SET_SONG_B', file: f })}
           onYouTubeUrl={(url, title, thumbnailUrl) =>
