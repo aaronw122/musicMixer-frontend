@@ -155,5 +155,5 @@ export async function registerSmsNotification(
  * Build a share URL for a remix session.
  */
 export function buildShareUrl(sessionId: string): string {
-  return `${window.location.origin}/?listen=${sessionId}`;
+  return `${window.location.origin}/remix/${sessionId}`;
 }

@@ -1,11 +1,9 @@
 import { useReducer, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { remixReducer, initialState } from '../hooks/useRemixReducer';
 import { useFormPersistence } from '../hooks/useFormPersistence';
 import { RemixForm } from './RemixForm';
-import { ProgressDisplay } from './ProgressDisplay';
-import { RemixPlayer } from './RemixPlayer';
 import { createRemix, submitYouTubeRemix } from '../api/client';
-import { useRemixProgress } from '../hooks/useRemixProgress';
 import type { CreateRemixError } from '../types';
 
 function formatError(error: CreateRemixError): string {
@@ -35,7 +33,15 @@ type SessionProps = {
 
 export function RemixSession({ onSessionReady }: SessionProps) {
   const [state, dispatch] = useReducer(remixReducer, initialState);
+  const navigate = useNavigate();
   useFormPersistence(state, dispatch);
+
+  // Navigate to remix page when processing starts
+  useEffect(() => {
+    if (state.phase === 'processing') {
+      navigate(`/remix/${state.sessionId}`, { state: { creator: true } });
+    }
+  }, [state.phase, navigate]);
 
   // Notify parent when remix is ready (or cleared)
   useEffect(() => {
@@ -91,12 +97,6 @@ export function RemixSession({ onSessionReady }: SessionProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase]);
 
-  // SSE progress connection
-  useRemixProgress(
-    state.phase === 'processing' ? state.sessionId : null,
-    dispatch,
-  );
-
   switch (state.phase) {
     case 'idle':
       return (
@@ -128,26 +128,10 @@ export function RemixSession({ onSessionReady }: SessionProps) {
         />
       );
 
+    // Processing/ready: handled by RemixPage (navigated away)
     case 'processing':
-      return (
-        <ProgressDisplay
-          progress={state.progress}
-          sessionId={state.sessionId}
-          onCancel={() => dispatch({ type: 'CANCEL' })}
-        />
-      );
-
     case 'ready':
-      return (
-        <RemixPlayer
-          sessionId={state.sessionId}
-          explanation={state.explanation}
-          warnings={state.warnings}
-          usedFallback={state.usedFallback}
-          keyWarning={state.keyWarning}
-          onNewRemix={() => dispatch({ type: 'RESET' })}
-        />
-      );
+      return null;
 
     case 'error':
       return (

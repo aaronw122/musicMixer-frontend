@@ -191,7 +191,7 @@ export function ProgressDisplay({ progress, sessionId, onCancel }: Props) {
         </p>
       ) : (
         <button
-          className="text-sm text-gray-400 hover:text-white transition-colors"
+          className="block mx-auto text-sm text-gray-400 hover:text-white transition-colors"
           onClick={() => setSmsState('dialog-open')}
         >
           <SmsIcon />
@@ -200,7 +200,7 @@ export function ProgressDisplay({ progress, sessionId, onCancel }: Props) {
       )}
 
       <button
-        className="text-sm text-gray-500 hover:text-gray-300 underline"
+        className="block mx-auto text-sm text-gray-500 hover:text-gray-300 underline"
         onClick={onCancel}
       >
         Cancel
