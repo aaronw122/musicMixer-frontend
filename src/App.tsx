@@ -1,23 +1,40 @@
 import { useState } from 'react';
+import { Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { RemixSession } from './components/RemixSession';
-import { ListenView } from './components/ListenView';
+import { RemixPage } from './components/RemixPage';
 import { ShareButton } from './components/ShareButton';
-import { useListenMode } from './hooks/useListenMode';
 import soundboardImg from './assets/soundboard.png';
 
-function App() {
-  const listenMode = useListenMode();
+/** Redirect legacy ?listen=<id> links to /remix/:id */
+function Home() {
+  const [params] = useSearchParams();
+  const listenId = params.get('listen');
+  if (listenId) {
+    return <Navigate to={`/remix/${listenId}`} replace />;
+  }
+  return <HomeContent />;
+}
+
+function HomeContent() {
   const [readySessionId, setReadySessionId] = useState<string | null>(null);
 
+  return (
+    <>
+      {readySessionId && (
+        <div className="absolute right-0 top-0">
+          <ShareButton sessionId={readySessionId} />
+        </div>
+      )}
+      <RemixSession onSessionReady={setReadySessionId} />
+    </>
+  );
+}
+
+function App() {
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100">
       <div className="mx-auto max-w-2xl px-4 py-12">
         <header className="relative mb-1 text-center">
-          {listenMode.mode === 'create' && readySessionId && (
-            <div className="absolute right-0 top-0">
-              <ShareButton sessionId={readySessionId} />
-            </div>
-          )}
           <img
             src={soundboardImg}
             alt="Soundboard mixer"
@@ -28,14 +45,11 @@ function App() {
             Pick two songs. AI grabs the vocals from one and drops them over instrumentals from the other.
           </p>
         </header>
-        {listenMode.mode === 'create' ? (
-          <RemixSession onSessionReady={setReadySessionId} />
-        ) : (
-          <ListenView
-            state={listenMode.state}
-            onCreateRemix={listenMode.exitListenMode}
-          />
-        )}
+
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/remix/:sessionId" element={<RemixPage />} />
+        </Routes>
       </div>
       <footer className="py-6 text-center text-xs text-gray-600">
         <div className="flex items-center justify-center gap-3">
