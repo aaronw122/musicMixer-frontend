@@ -27,11 +27,7 @@ function formatError(error: CreateRemixError): string {
   }
 }
 
-type SessionProps = {
-  onSessionReady?: (sessionId: string | null) => void;
-};
-
-export function RemixSession({ onSessionReady }: SessionProps) {
+export function RemixSession() {
   const [state, dispatch] = useReducer(remixReducer, initialState);
   const navigate = useNavigate();
   useFormPersistence(state, dispatch);
@@ -41,12 +37,7 @@ export function RemixSession({ onSessionReady }: SessionProps) {
     if (state.phase === 'processing') {
       navigate(`/remix/${state.sessionId}`, { state: { creator: true } });
     }
-  }, [state.phase, navigate]);
-
-  // Notify parent when remix is ready (or cleared)
-  useEffect(() => {
-    onSessionReady?.(state.phase === 'ready' ? state.sessionId : null);
-  }, [state.phase, state.phase === 'ready' ? state.sessionId : null, onSessionReady]);
+  }, [state.phase, state.phase === 'processing' ? state.sessionId : null, navigate]);
 
   // Handle file upload submission
   const handleUpload = useCallback(async () => {
