@@ -1,17 +1,17 @@
 import { useReducer, useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ProgressDisplay } from './ProgressDisplay';
+import { DJBoard } from './DJBoard';
+import { MergeTransition } from './MergeTransition';
 import { RemixPlayer } from './RemixPlayer';
 import { ShareButton } from './ShareButton';
 import { useRemixProgress } from '../hooks/useRemixProgress';
 import { getPublicRemix } from '../api/client';
-import type { AppAction, ProgressEvent } from '../types';
+import type { AppAction, ProgressEvent, SongInput } from '../types';
 
 type PagePhase =
   | { kind: 'loading' }
   | { kind: 'processing'; progress: ProgressEvent }
   | { kind: 'ready'; explanation: string; warnings: string[]; usedFallback: boolean; keyWarning?: string }
-  | { kind: 'expired' }
   | { kind: 'error'; message: string };
 
 /**
@@ -51,7 +51,8 @@ export function RemixPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const isCreator = !!(location.state as { creator?: boolean } | null)?.creator;
+  const routeState = location.state as { creator?: boolean; songA?: SongInput; songB?: SongInput } | null;
+  const isCreator = !!routeState?.creator;
 
   const [state, dispatch] = useReducer(pageReducer, undefined, (): PagePhase => {
     if (isCreator) {
@@ -134,10 +135,18 @@ export function RemixPage() {
 
     case 'processing':
       return (
-        <ProgressDisplay
-          progress={state.progress}
-          sessionId={sessionId}
-          onCancel={goHome}
+        <DJBoard
+          centerContent={
+            <div className="w-full max-w-2xl mx-auto py-4">
+              <MergeTransition
+                songA={(routeState?.songA ?? { type: 'file' }) as SongInput}
+                songB={(routeState?.songB ?? { type: 'file' }) as SongInput}
+                progress={state.progress}
+                sessionId={sessionId}
+                onCancel={goHome}
+              />
+            </div>
+          }
         />
       );
 
@@ -159,9 +168,6 @@ export function RemixPage() {
           />
         </div>
       );
-
-    case 'expired':
-      return null; // Handled by expired flag above
 
     case 'error':
       return (

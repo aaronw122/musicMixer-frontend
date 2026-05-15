@@ -55,7 +55,18 @@ export function RemixSession() {
   // Navigate to remix page when processing starts
   useEffect(() => {
     if (state.phase === 'processing') {
-      navigate(`/remix/${state.sessionId}`, { state: { creator: true } });
+      // Pass minimal serializable song data for MergeTransition visuals
+      const toSongState = (s: SongInput) =>
+        s.type === 'youtube'
+          ? { type: 'youtube' as const, url: s.url, thumbnailUrl: s.thumbnailUrl }
+          : { type: 'file' as const };
+      navigate(`/remix/${state.sessionId}`, {
+        state: {
+          creator: true,
+          songA: toSongState(state.songA),
+          songB: toSongState(state.songB),
+        },
+      });
     }
   }, [state.phase, state.phase === 'processing' ? state.sessionId : null, navigate]);
 
