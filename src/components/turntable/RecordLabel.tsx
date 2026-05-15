@@ -13,7 +13,7 @@ const DECK_COLORS = {
 } as const;
 
 export function RecordLabel({ remixTitle, cx, cy, radius, deckId }: Props) {
-  const colors = deckId ? DECK_COLORS[deckId] : DECK_COLORS.default;
+  const colors = (deckId && DECK_COLORS[deckId]) || DECK_COLORS.default;
   const displayTitle =
     remixTitle.length > 28 ? remixTitle.slice(0, 25) + '...' : remixTitle;
 
