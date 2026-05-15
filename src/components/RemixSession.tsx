@@ -1,13 +1,11 @@
 import { useReducer, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { remixReducer, initialState } from '../hooks/useRemixReducer';
 import { useFormPersistence } from '../hooks/useFormPersistence';
 import { DJBoard } from './DJBoard';
 import { InputDeck } from './InputDeck';
 import { MixButton } from './MixButton';
-import { MergeTransition } from './MergeTransition';
-import { RemixPlayer } from './RemixPlayer';
 import { createRemix, submitYouTubeRemix } from '../api/client';
-import { useRemixProgress } from '../hooks/useRemixProgress';
 import type { CreateRemixError, SongInput } from '../types';
 
 function formatError(error: CreateRemixError): string {
@@ -49,18 +47,28 @@ function isAllFiles(a: SongInput | null, b: SongInput | null): boolean {
   );
 }
 
-type SessionProps = {
-  onSessionReady?: (sessionId: string | null) => void;
-};
-
-export function RemixSession({ onSessionReady }: SessionProps) {
+export function RemixSession() {
   const [state, dispatch] = useReducer(remixReducer, initialState);
+  const navigate = useNavigate();
   useFormPersistence(state, dispatch);
 
-  // Notify parent when remix is ready (or cleared)
+  // Navigate to remix page when processing starts
   useEffect(() => {
-    onSessionReady?.(state.phase === 'ready' ? state.sessionId : null);
-  }, [state.phase, state.phase === 'ready' ? state.sessionId : null, onSessionReady]);
+    if (state.phase === 'processing') {
+      // Pass minimal serializable song data for MergeTransition visuals
+      const toSongState = (s: SongInput) =>
+        s.type === 'youtube'
+          ? { type: 'youtube' as const, url: s.url, thumbnailUrl: s.thumbnailUrl }
+          : { type: 'file' as const };
+      navigate(`/remix/${state.sessionId}`, {
+        state: {
+          creator: true,
+          songA: toSongState(state.songA),
+          songB: toSongState(state.songB),
+        },
+      });
+    }
+  }, [state.phase, state.phase === 'processing' ? state.sessionId : null, navigate]);
 
   // Handle file upload submission
   const handleUpload = useCallback(async () => {
@@ -111,13 +119,7 @@ export function RemixSession({ onSessionReady }: SessionProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase]);
 
-  // SSE progress connection
-  useRemixProgress(
-    state.phase === 'processing' ? state.sessionId : null,
-    dispatch,
-  );
-
-  // Derive submit handler (same logic as RemixForm)
+  // Derive submit handler
   const handleSubmit = useCallback(() => {
     if (state.phase !== 'idle') return;
     const { songA, songB } = state;
@@ -262,40 +264,10 @@ export function RemixSession({ onSessionReady }: SessionProps) {
         </DJBoard>
       );
 
+    // Processing/ready: handled by RemixPage (navigated away)
     case 'processing':
-      return (
-        <DJBoard
-          centerContent={
-            <div className="w-full max-w-2xl mx-auto py-4">
-              <MergeTransition
-                songA={state.songA}
-                songB={state.songB}
-                progress={state.progress}
-                sessionId={state.sessionId}
-                onCancel={() => dispatch({ type: 'CANCEL' })}
-              />
-            </div>
-          }
-        />
-      );
-
     case 'ready':
-      return (
-        <DJBoard
-          centerContent={
-            <div className="w-full max-w-2xl mx-auto py-4">
-              <RemixPlayer
-                sessionId={state.sessionId}
-                explanation={state.explanation}
-                warnings={state.warnings}
-                usedFallback={state.usedFallback}
-                keyWarning={state.keyWarning}
-                onNewRemix={() => dispatch({ type: 'RESET' })}
-              />
-            </div>
-          }
-        />
-      );
+      return null;
 
     case 'error':
       return (
