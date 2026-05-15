@@ -133,7 +133,6 @@ export function InputDeck({ deckId, label, song, dispatch, disabled }: Props) {
           isEmpty={isEmpty}
           thumbnailUrl={proxiedThumbnailUrl}
           vinylColor={vinylColor}
-          className={isSpinning ? 'deck-idle-spin' : ''}
         />
       </div>
 

@@ -41,17 +41,36 @@ export function Tonearm({ pivotX, pivotY, angle, scale, deckId = 'default' }: Pr
       />
 
       {/* Counterweight (behind pivot) */}
+      <defs>
+        <radialGradient id={`cw-grad-${deckId}`} cx="40%" cy="35%">
+          <stop offset="0%" stopColor="#c0c0c0" />
+          <stop offset="60%" stopColor="#909090" />
+          <stop offset="100%" stopColor="#606060" />
+        </radialGradient>
+        <radialGradient id={`pivot-grad-${deckId}`} cx="40%" cy="35%">
+          <stop offset="0%" stopColor="#d0d0d0" />
+          <stop offset="50%" stopColor="#aaa" />
+          <stop offset="100%" stopColor="#777" />
+        </radialGradient>
+      </defs>
       <circle
         cx={pivotX + counterweightR * 1.5}
         cy={pivotY - counterweightR * 0.5}
         r={counterweightR}
-        fill="#888"
-        stroke="#666"
+        fill={`url(#cw-grad-${deckId})`}
+        stroke="#555"
         strokeWidth={0.5}
       />
 
       {/* Pivot mount */}
-      <circle cx={pivotX} cy={pivotY} r={5 * scale} fill="#999" stroke="#777" strokeWidth={0.5} />
+      <circle
+        cx={pivotX}
+        cy={pivotY}
+        r={5 * scale}
+        fill={`url(#pivot-grad-${deckId})`}
+        stroke="#666"
+        strokeWidth={0.5}
+      />
 
       {/* Main arm — brushed metal gradient */}
       <defs>
@@ -78,7 +97,7 @@ export function Tonearm({ pivotX, pivotY, angle, scale, deckId = 'default' }: Pr
         y1={pivotY + armLength * 0.92}
         x2={pivotX - armLength * 0.25 - headLength * 0.35}
         y2={pivotY + armLength * 0.92 + headLength}
-        stroke="#c0c0c0"
+        stroke={`url(#${metalGradientId})`}
         strokeWidth={armWidth * 0.7}
         strokeLinecap="round"
       />

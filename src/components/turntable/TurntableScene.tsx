@@ -29,6 +29,7 @@ const PLATTER_CY = 160;
 const PLATTER_R = 130;
 const RECORD_R = 120;
 const LABEL_R = 35;
+const FELT_R = PLATTER_R - 10.5;
 
 // Tonearm pivot position (top-right area)
 const PIVOT_X = 310;
@@ -63,48 +64,62 @@ export function TurntableScene({
       role="img"
     >
       <defs>
-        {/* Wood grain texture filter */}
-        <filter id={id('woodGrain')} x="0%" y="0%" width="100%" height="100%">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.02 0.15"
-            numOctaves={5}
-            seed={7}
-            result="grain"
-          />
-          <feColorMatrix
-            in="grain"
-            type="matrix"
-            values="0.3 0.15 0.05 0 0.32
-                    0.2 0.12 0.03 0 0.2
-                    0.1 0.05 0.02 0 0.1
-                    0   0    0    1 0"
-            result="woodColor"
-          />
-          <feBlend in="SourceGraphic" in2="woodColor" mode="multiply" result="grained" />
-          <feComposite in="grained" in2="SourceGraphic" operator="in" />
-        </filter>
-
-        {/* Plinth gradient — warm walnut tones */}
-        <linearGradient id={id('plinthGradient')} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#7A5230" />
-          <stop offset="25%" stopColor="#8B6914" />
-          <stop offset="50%" stopColor="#6B4226" />
-          <stop offset="75%" stopColor="#8B6914" />
-          <stop offset="100%" stopColor="#5C3D2E" />
+        {/* Plinth gradient — near-black DJ chassis */}
+        <linearGradient id={id('plinthGradient')} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#2a2a2a" />
+          <stop offset="50%" stopColor="#1a1a1a" />
+          <stop offset="100%" stopColor="#111" />
+        </linearGradient>
+        {/* Plinth top highlight */}
+        <linearGradient id={id('plinthHighlight')} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="white" stopOpacity="0.06" />
+          <stop offset="30%" stopColor="white" stopOpacity="0" />
+          <stop offset="100%" stopColor="black" stopOpacity="0.15" />
         </linearGradient>
 
-        {/* Platter rim gradient */}
+        {/* Platter — dark rubber mat with subtle gradient */}
         <radialGradient id={id('platterGradient')} cx="45%" cy="42%">
-          <stop offset="0%" stopColor="#2a2a2a" />
-          <stop offset="85%" stopColor="#1a1a1a" />
-          <stop offset="100%" stopColor="#111" />
+          <stop offset="0%" stopColor="#303230" />
+          <stop offset="72%" stopColor="#202220" />
+          <stop offset="100%" stopColor="#181918" />
         </radialGradient>
 
-        {/* Platter inset shadow */}
-        <filter id={id('platterInset')} x="-5%" y="-5%" width="110%" height="110%">
-          <feDropShadow dx={0} dy={2} stdDeviation={4} floodColor="#000" floodOpacity={0.3} />
+        {/* Platter elevation shadow — lifts off the plinth */}
+        <filter id={id('platterLift')} x="-15%" y="-10%" width="130%" height="140%">
+          <feDropShadow dx={0} dy={3} stdDeviation={5} floodColor="#000" floodOpacity={0.5} />
+          <feDropShadow dx={0} dy={1} stdDeviation={1.5} floodColor="#000" floodOpacity={0.35} />
         </filter>
+
+        {/* Felt-like platter mat grain */}
+        <filter id={id('feltTexture')} x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="2.4"
+            numOctaves={2}
+            seed={11}
+            result="noise"
+          />
+          <feColorMatrix
+            in="noise"
+            type="matrix"
+            values="0 0 0 0 0.20
+                    0 0 0 0 0.20
+                    0 0 0 0 0.19
+                    0 0 0 0.13 0"
+            result="grain"
+          />
+          <feComposite in="grain" in2="SourceAlpha" operator="in" result="clippedGrain" />
+          <feBlend in="SourceGraphic" in2="clippedGrain" mode="screen" />
+        </filter>
+
+        {/* Dark strobe rim band */}
+        <linearGradient id={id('chromeRim')} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#252525" />
+          <stop offset="25%" stopColor="#111" />
+          <stop offset="50%" stopColor="#1a1a1a" />
+          <stop offset="75%" stopColor="#0d0d0d" />
+          <stop offset="100%" stopColor="#222" />
+        </linearGradient>
 
         {!isEmpty && (
           <>
@@ -153,79 +168,148 @@ export function TurntableScene({
               <stop offset="100%" stopColor="transparent" stopOpacity="0" />
             </radialGradient>
 
-            {/* Clip path for circular thumbnail crop in label area */}
+            {/* Pattern fill for circular thumbnail on vinyl */}
             {thumbnailUrl && (
-              <clipPath id={id('thumbnailClip')}>
-                <circle cx={PLATTER_CX} cy={PLATTER_CY} r={LABEL_R} />
-              </clipPath>
+              <pattern
+                id={id('thumbPat')}
+                patternUnits="objectBoundingBox"
+                patternContentUnits="objectBoundingBox"
+                width="1"
+                height="1"
+              >
+                <image
+                  href={thumbnailUrl}
+                  x="-0.25"
+                  y="-0.25"
+                  width="1.5"
+                  height="1.5"
+                  preserveAspectRatio="xMidYMid slice"
+                />
+              </pattern>
             )}
           </>
         )}
       </defs>
 
-      {/* === Plinth (wood base) === */}
+      {/* === Plinth (metal chassis) === */}
       <rect
         x="10"
         y="10"
         width={VB_W - 20}
         height={VB_H - 20}
-        rx="16"
+        rx="4"
         fill={`url(#${id('plinthGradient')})`}
-        filter={`url(#${id('woodGrain')})`}
       />
-      {/* Plinth border highlight */}
+      {/* Top highlight overlay */}
       <rect
         x="10"
         y="10"
         width={VB_W - 20}
         height={VB_H - 20}
-        rx="16"
-        fill="none"
-        stroke="#9B7940"
-        strokeWidth={1.5}
-        opacity={0.4}
+        rx="4"
+        fill={`url(#${id('plinthHighlight')})`}
       />
-      {/* Inner edge shadow */}
+      {/* Plinth border — subtle edge */}
       <rect
-        x="14"
-        y="14"
-        width={VB_W - 28}
-        height={VB_H - 28}
-        rx="13"
+        x="10"
+        y="10"
+        width={VB_W - 20}
+        height={VB_H - 20}
+        rx="4"
         fill="none"
-        stroke="rgba(0,0,0,0.15)"
-        strokeWidth="0.8"
+        stroke="#444"
+        strokeWidth={0.8}
+        opacity={0.6}
+      />
+      {/* Inner edge bevel */}
+      <rect
+        x="12"
+        y="12"
+        width={VB_W - 24}
+        height={VB_H - 24}
+        rx="5"
+        fill="none"
+        stroke="rgba(255,255,255,0.06)"
+        strokeWidth="0.6"
       />
 
       {/* === Platter === */}
+      {/* Elevation shadow — lifts platter off the plinth */}
       <circle
         cx={PLATTER_CX}
         cy={PLATTER_CY}
         r={PLATTER_R}
         fill={`url(#${id('platterGradient')})`}
-        filter={`url(#${id('platterInset')})`}
-        stroke="#222"
+        filter={`url(#${id('platterLift')})`}
+        stroke="#333"
         strokeWidth="1"
       />
-      {/* Platter edge ring */}
+      {/* Chrome outer rim ring — wide Pioneer-style strobe band */}
       <circle
         cx={PLATTER_CX}
         cy={PLATTER_CY}
-        r={PLATTER_R - 2}
+        r={PLATTER_R - 7}
         fill="none"
-        stroke="#2a2a2a"
-        strokeWidth="0.5"
+        stroke={`url(#${id('chromeRim')})`}
+        strokeWidth="14"
       />
-
+      <circle
+        cx={PLATTER_CX}
+        cy={PLATTER_CY}
+        r={PLATTER_R - 0.5}
+        fill="none"
+        stroke="rgba(220,220,220,0.7)"
+        strokeWidth="1.35"
+      />
+      {/* Punched strobe-dot rows in the chrome rim */}
+      {[
+        { count: 72, radius: PLATTER_R - 3.2, dotRadius: 1.45, key: 'outer' },
+        { count: 108, radius: PLATTER_R - 7, dotRadius: 0.95, key: 'middle' },
+      ].map((row) =>
+        Array.from({ length: row.count }).map((_, i) => {
+          const angle = (i * 360) / row.count;
+          const rad = (angle * Math.PI) / 180;
+          const highlight = Math.sin(rad - Math.PI / 4) > 0.55;
+          return (
+            <circle
+              key={`strobe-${row.key}-${i}`}
+              cx={PLATTER_CX + row.radius * Math.cos(rad)}
+              cy={PLATTER_CY + row.radius * Math.sin(rad)}
+              r={row.dotRadius}
+              fill={highlight ? 'rgba(240,240,240,0.95)' : 'rgba(200,200,200,0.9)'}
+            />
+          );
+        }),
+      )}
+      {/* Felt mat surface inside the strobe ring */}
+      <circle
+        cx={PLATTER_CX}
+        cy={PLATTER_CY}
+        r={FELT_R}
+        fill={`url(#${id('platterGradient')})`}
+        filter={`url(#${id('feltTexture')})`}
+      />
+      <circle
+        cx={PLATTER_CX}
+        cy={PLATTER_CY}
+        r={FELT_R}
+        fill="none"
+        stroke="rgba(220,220,220,0.7)"
+        strokeWidth="1.35"
+      />
       {/* === Vinyl Record (spinning group) — only when not empty === */}
       {!isEmpty && (
-        <g
-          className={effectiveIsSpinning ? 'animate-vinyl-spin' : ''}
-          style={{
-            transformOrigin: `${PLATTER_CX}px ${PLATTER_CY}px`,
-            animationPlayState: effectiveIsSpinning ? 'running' : 'paused',
-          }}
-        >
+        <g>
+          {effectiveIsSpinning && (
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              from={`0 ${PLATTER_CX} ${PLATTER_CY}`}
+              to={`360 ${PLATTER_CX} ${PLATTER_CY}`}
+              dur="6s"
+              repeatCount="indefinite"
+            />
+          )}
           {/* Record body */}
           <g clipPath={`url(#${id('recordClip')})`}>
             <circle
@@ -270,26 +354,66 @@ export function TurntableScene({
             fill={`url(#${id('groove-shimmer')})`}
           />
 
-          {/* Record label — thumbnail or text */}
+          {/* Record label — thumbnail fills entire vinyl surface */}
           {thumbnailUrl ? (
-            <g clipPath={`url(#${id('thumbnailClip')})`}>
-              <image
-                href={thumbnailUrl}
-                x={PLATTER_CX - LABEL_R}
-                y={PLATTER_CY - LABEL_R}
-                width={LABEL_R * 2}
-                height={LABEL_R * 2}
-                preserveAspectRatio="xMidYMid slice"
+            <>
+              <circle
+                cx={PLATTER_CX}
+                cy={PLATTER_CY}
+                r={RECORD_R - 1}
+                fill={`url(#${id('thumbPat')})`}
               />
-              {/* Center spindle hole over thumbnail */}
+              {/* Center label — red for deck A, blue for deck B */}
+              <circle
+                cx={PLATTER_CX}
+                cy={PLATTER_CY}
+                r={LABEL_R}
+                fill={deckId === 'a' ? '#c41e3a' : '#1e40af'}
+              />
+              <circle
+                cx={PLATTER_CX}
+                cy={PLATTER_CY}
+                r={LABEL_R * 0.85}
+                fill="none"
+                stroke={deckId === 'a' ? '#a31830' : '#1a3690'}
+                strokeWidth={0.6}
+              />
+              {/* Arc path for curved song title */}
+              <defs>
+                <path
+                  id={id('labelArc')}
+                  d={`M ${PLATTER_CX - LABEL_R * 0.68} ${PLATTER_CY} A ${LABEL_R * 0.68} ${LABEL_R * 0.68} 0 0 1 ${PLATTER_CX + LABEL_R * 0.68} ${PLATTER_CY}`}
+                  fill="none"
+                />
+              </defs>
+              <text
+                fill="#f5e6d0"
+                fontSize={LABEL_R * 0.22}
+                fontFamily="Georgia, serif"
+                letterSpacing="0.05em"
+              >
+                <textPath
+                  href={`#${id('labelArc')}`}
+                  startOffset="50%"
+                  textAnchor="middle"
+                  dy="1em"
+                >
+                  {(remixTitle.length > 15
+                    ? remixTitle.slice(0, 15) + '...'
+                    : remixTitle
+                  ).toUpperCase()}
+                </textPath>
+              </text>
+              {/* Center spindle hole */}
               <circle cx={PLATTER_CX} cy={PLATTER_CY} r={LABEL_R * 0.1} fill="#1a1a1a" />
-            </g>
+            </>
           ) : (
             <RecordLabel
               remixTitle={remixTitle}
               cx={PLATTER_CX}
               cy={PLATTER_CY}
               radius={LABEL_R}
+              deckId={deckId === 'default' ? undefined : deckId as 'a' | 'b'}
             />
           )}
         </g>
@@ -300,46 +424,6 @@ export function TurntableScene({
         <g opacity="0.2">
           {/* Center spindle dot on bare platter */}
           <circle cx={PLATTER_CX} cy={PLATTER_CY} r={3} fill="#555" />
-          {/* Platter mat rings */}
-          <circle
-            cx={PLATTER_CX}
-            cy={PLATTER_CY}
-            r={PLATTER_R * 0.7}
-            fill="none"
-            stroke="#333"
-            strokeWidth="0.5"
-          />
-          <circle
-            cx={PLATTER_CX}
-            cy={PLATTER_CY}
-            r={PLATTER_R * 0.4}
-            fill="none"
-            stroke="#333"
-            strokeWidth="0.5"
-          />
-          {/* Music note icon hint */}
-          <text
-            x={PLATTER_CX}
-            y={PLATTER_CY - 8}
-            textAnchor="middle"
-            fill="#aaa"
-            fontSize="28"
-            fontFamily="serif"
-            aria-hidden="true"
-          >
-            &#9835;
-          </text>
-          {/* "Drop a track" hint text */}
-          <text
-            x={PLATTER_CX}
-            y={PLATTER_CY + 20}
-            textAnchor="middle"
-            fill="#999"
-            fontSize="11"
-            fontFamily="system-ui, sans-serif"
-          >
-            Drop a track
-          </text>
         </g>
       )}
 
@@ -351,8 +435,17 @@ export function TurntableScene({
         height="6"
         rx="3"
         fill="#333"
-        stroke="#444"
+        stroke="#555"
         strokeWidth="0.5"
+      />
+      {/* Cradle highlight */}
+      <rect
+        x={PIVOT_X - 10}
+        y={PIVOT_Y + 15}
+        width="20"
+        height="2"
+        rx="1"
+        fill="rgba(255,255,255,0.08)"
       />
 
       {/* === Tonearm === */}
