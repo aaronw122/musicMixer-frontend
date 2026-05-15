@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
+:root {
+  --board-bg: #6B3E26;
+  --board-surface: #7A4E32;
+  --board-border: #4A2A18;
+  --page-bg: #2A1810;
+}
+
 html {
   min-height: 100%;
-  background-color: theme(--color-gray-950);
+  background-color: var(--page-bg);
 }
 
 body {
@@ -39,8 +46,91 @@ body {
   }
 }
 
+/* Idle deck spin — slower rotation for loaded-but-not-playing state */
+.deck-idle-spin {
+  animation: vinyl-spin 8s linear infinite;
+}
+
+/* Merge transition — lift records off turntables */
+.merge-lift {
+  transform: translateY(-12px) scale(0.92);
+}
+
+/* Merge transition — slide records toward center */
+.merge-slide-left {
+  transform: translateX(30px) translateY(-12px) scale(0.88);
+}
+.merge-slide-right {
+  transform: translateX(-30px) translateY(-12px) scale(0.88);
+}
+
+/* Merge meld canvas fade-in */
+.merge-meld-appear {
+  animation: merge-meld-in 0.8s ease-out both;
+}
+
+@keyframes merge-meld-in {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Mix button pulse animation */
+.mix-button-pulse {
+  animation: mix-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes mix-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); }
+  50% { box-shadow: 0 0 20px 6px rgba(217, 119, 6, 0.25); }
+}
+
+/* Mix button glow ring */
+.mix-button-glow {
+  animation: mix-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes mix-glow {
+  0%, 100% {
+    box-shadow: inset 0 0 6px rgba(255, 191, 0, 0.15);
+  }
+  50% {
+    box-shadow: inset 0 0 12px rgba(255, 191, 0, 0.3);
+  }
+}
+
+/* Progress area on the board — warm tones */
+.merge-progress-area .bg-blue-500 {
+  background: linear-gradient(to right, #b45309, #d97706);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-vinyl-spin {
-    animation-play-state: paused;
+  .animate-vinyl-spin,
+  .deck-idle-spin {
+    animation: none;
+  }
+
+  .mix-button-pulse,
+  .mix-button-glow,
+  .merge-meld-appear {
+    animation: none;
+  }
+
+  .merge-lift,
+  .merge-slide-left,
+  .merge-slide-right {
+    transform: none;
+  }
+
+  /* Disable all transitions and animations globally for reduced-motion users */
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

@@ -1,10 +1,14 @@
 import { useReducer, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { remixReducer, initialState } from '../hooks/useRemixReducer';
 import { useFormPersistence } from '../hooks/useFormPersistence';
-import { RemixForm } from './RemixForm';
+import { DJBoard } from './DJBoard';
+import { InputDeck } from './InputDeck';
+import { MixButton } from './MixButton';
+import { MergeTransition } from './MergeTransition';
+import { RemixPlayer } from './RemixPlayer';
 import { createRemix, submitYouTubeRemix } from '../api/client';
-import type { CreateRemixError } from '../types';
+import { useRemixProgress } from '../hooks/useRemixProgress';
+import type { CreateRemixError, SongInput } from '../types';
 
 function formatError(error: CreateRemixError): string {
   switch (error.type) {
@@ -27,21 +31,31 @@ function formatError(error: CreateRemixError): string {
   }
 }
 
+/** True when both slots have YouTube URLs (no file uploads). */
+function isBothYouTube(a: SongInput | null, b: SongInput | null): boolean {
+  return a?.type === 'youtube' && b?.type === 'youtube';
+}
+
+/** True when at least one slot has a YouTube URL. */
+function hasAnyYouTube(a: SongInput | null, b: SongInput | null): boolean {
+  return a?.type === 'youtube' || b?.type === 'youtube';
+}
+
+/** True when all non-null inputs are files (for upload flow). */
+function isAllFiles(a: SongInput | null, b: SongInput | null): boolean {
+  return (
+    (a === null || a.type === 'file') &&
+    (b === null || b.type === 'file')
+  );
+}
+
 type SessionProps = {
   onSessionReady?: (sessionId: string | null) => void;
 };
 
 export function RemixSession({ onSessionReady }: SessionProps) {
   const [state, dispatch] = useReducer(remixReducer, initialState);
-  const navigate = useNavigate();
   useFormPersistence(state, dispatch);
-
-  // Navigate to remix page when processing starts
-  useEffect(() => {
-    if (state.phase === 'processing') {
-      navigate(`/remix/${state.sessionId}`, { state: { creator: true } });
-    }
-  }, [state.phase, navigate]);
 
   // Notify parent when remix is ready (or cleared)
   useEffect(() => {
@@ -97,55 +111,209 @@ export function RemixSession({ onSessionReady }: SessionProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.phase]);
 
+  // SSE progress connection
+  useRemixProgress(
+    state.phase === 'processing' ? state.sessionId : null,
+    dispatch,
+  );
+
+  // Derive submit handler (same logic as RemixForm)
+  const handleSubmit = useCallback(() => {
+    if (state.phase !== 'idle') return;
+    const { songA, songB } = state;
+    if (!songA || !songB) return;
+
+    if (isBothYouTube(songA, songB)) {
+      dispatch({ type: 'START_SUBMIT' });
+      return;
+    }
+
+    if (isAllFiles(songA, songB)) {
+      dispatch({ type: 'START_UPLOAD' });
+      return;
+    }
+
+    // Mixed input fallback
+    dispatch({ type: 'START_UPLOAD' });
+  }, [state]);
+
+  // Derive UI state
+  const songA = 'songA' in state ? state.songA : null;
+  const songB = 'songB' in state ? state.songB : null;
+  const bothLoaded = songA !== null && songB !== null;
+  const hasMixedInput =
+    bothLoaded &&
+    hasAnyYouTube(songA, songB) &&
+    !isBothYouTube(songA, songB);
+  const canMix = bothLoaded && !hasMixedInput;
+
   switch (state.phase) {
     case 'idle':
       return (
-        <RemixForm
-          songA={state.songA}
-          songB={state.songB}
-          dispatch={dispatch}
+        <DJBoard
+          deckA={
+            <InputDeck
+              deckId="a"
+              label="Grab vocals from..."
+              song={state.songA}
+              dispatch={dispatch}
+            />
+          }
+          deckB={
+            <InputDeck
+              deckId="b"
+              label="Use instrumentals from..."
+              song={state.songB}
+              dispatch={dispatch}
+            />
+          }
+          mixControls={
+            <div className="flex flex-col items-center gap-3">
+              <MixButton
+                canMix={canMix}
+                submitting={false}
+                onClick={handleSubmit}
+              />
+              {/* Quality info when both songs are YouTube-sourced */}
+              {isBothYouTube(songA, songB) && (
+                <p className="text-[10px] text-amber-400/60 text-center max-w-[140px]">
+                  For best quality, upload audio files
+                </p>
+              )}
+              {/* Mixed input warning */}
+              {hasMixedInput && (
+                <p className="text-[10px] text-amber-400/60 text-center max-w-[140px]">
+                  Both songs must use the same input method
+                </p>
+              )}
+            </div>
+          }
         />
       );
 
     case 'uploading':
       return (
-        <RemixForm
-          songA={state.songA}
-          songB={state.songB}
-          dispatch={dispatch}
-          submitting={true}
-          uploadProgress={state.uploadProgress}
-        />
+        <DJBoard
+          deckA={
+            <InputDeck
+              deckId="a"
+              label="Grab vocals from..."
+              song={state.songA}
+              dispatch={dispatch}
+              disabled
+            />
+          }
+          deckB={
+            <InputDeck
+              deckId="b"
+              label="Use instrumentals from..."
+              song={state.songB}
+              dispatch={dispatch}
+              disabled
+            />
+          }
+          mixControls={
+            <MixButton canMix={false} submitting={true} onClick={() => {}} />
+          }
+        >
+          {/* Upload progress bar below the board */}
+          <div className="w-full max-w-md mx-auto space-y-1">
+            <div className="h-2 rounded-full bg-black/30 overflow-hidden border border-amber-900/30">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-300"
+                style={{ width: `${state.uploadProgress}%` }}
+              />
+            </div>
+            <p className="text-xs text-amber-200/40 text-center">
+              Uploading... {state.uploadProgress}%
+            </p>
+          </div>
+        </DJBoard>
       );
 
     case 'submitting':
       return (
-        <RemixForm
-          songA={state.songA}
-          songB={state.songB}
-          dispatch={dispatch}
-          submitting={true}
+        <DJBoard
+          deckA={
+            <InputDeck
+              deckId="a"
+              label="Grab vocals from..."
+              song={state.songA}
+              dispatch={dispatch}
+              disabled
+            />
+          }
+          deckB={
+            <InputDeck
+              deckId="b"
+              label="Use instrumentals from..."
+              song={state.songB}
+              dispatch={dispatch}
+              disabled
+            />
+          }
+          mixControls={
+            <MixButton canMix={false} submitting={true} onClick={() => {}} />
+          }
+        >
+          <p className="text-sm text-amber-200/40 text-center">
+            Submitting your songs...
+          </p>
+        </DJBoard>
+      );
+
+    case 'processing':
+      return (
+        <DJBoard
+          centerContent={
+            <div className="w-full max-w-2xl mx-auto py-4">
+              <MergeTransition
+                songA={state.songA}
+                songB={state.songB}
+                progress={state.progress}
+                sessionId={state.sessionId}
+                onCancel={() => dispatch({ type: 'CANCEL' })}
+              />
+            </div>
+          }
         />
       );
 
-    // Processing/ready: handled by RemixPage (navigated away)
-    case 'processing':
     case 'ready':
-      return null;
+      return (
+        <DJBoard
+          centerContent={
+            <div className="w-full max-w-2xl mx-auto py-4">
+              <RemixPlayer
+                sessionId={state.sessionId}
+                explanation={state.explanation}
+                warnings={state.warnings}
+                usedFallback={state.usedFallback}
+                keyWarning={state.keyWarning}
+                onNewRemix={() => dispatch({ type: 'RESET' })}
+              />
+            </div>
+          }
+        />
+      );
 
     case 'error':
       return (
-        <div className="text-center space-y-4">
-          <div className="rounded-lg border border-red-800/50 bg-red-950/30 p-6">
-            <p className="text-red-300">{state.message}</p>
-          </div>
-          <button
-            className="rounded-lg bg-gray-700 px-6 py-2 text-sm text-gray-300 hover:bg-gray-600"
-            onClick={() => dispatch({ type: 'RETRY' })}
-          >
-            Try Again
-          </button>
-        </div>
+        <DJBoard
+          centerContent={
+            <div className="w-full max-w-md mx-auto text-center space-y-4 py-4">
+              <div className="rounded-lg border border-amber-700/50 bg-amber-950/25 p-6">
+                <p className="text-amber-200/80">{state.message}</p>
+              </div>
+              <button
+                className="rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 px-6 py-3 text-sm font-medium text-amber-50 hover:from-amber-500 hover:to-amber-700 transition-colors min-h-[44px]"
+                onClick={() => dispatch({ type: 'RETRY' })}
+              >
+                Try Again
+              </button>
+            </div>
+          }
+        />
       );
   }
 }

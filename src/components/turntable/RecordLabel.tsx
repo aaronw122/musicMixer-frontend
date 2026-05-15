@@ -3,9 +3,17 @@ type Props = {
   cx: number;
   cy: number;
   radius: number;
+  deckId?: 'a' | 'b';
 };
 
-export function RecordLabel({ remixTitle, cx, cy, radius }: Props) {
+const DECK_COLORS = {
+  a: { bg: '#c41e3a', ring: '#a31830', text: '#f5e6d0' },
+  b: { bg: '#1e40af', ring: '#1a3690', text: '#f5e6d0' },
+  default: { bg: '#d4a04a', ring: '#c4903a', text: '#2a1a0a' },
+} as const;
+
+export function RecordLabel({ remixTitle, cx, cy, radius, deckId }: Props) {
+  const colors = deckId ? DECK_COLORS[deckId] : DECK_COLORS.default;
   const displayTitle =
     remixTitle.length > 28 ? remixTitle.slice(0, 25) + '...' : remixTitle;
 
@@ -16,15 +24,15 @@ export function RecordLabel({ remixTitle, cx, cy, radius }: Props) {
 
   return (
     <g>
-      {/* Label background — amber/cream */}
-      <circle cx={cx} cy={cy} r={radius} fill="#d4a04a" />
+      {/* Label background */}
+      <circle cx={cx} cy={cy} r={radius} fill={colors.bg} />
       {/* Inner ring */}
       <circle
         cx={cx}
         cy={cy}
         r={radius * 0.85}
         fill="none"
-        stroke="#c4903a"
+        stroke={colors.ring}
         strokeWidth={0.6}
       />
 
@@ -46,7 +54,7 @@ export function RecordLabel({ remixTitle, cx, cy, radius }: Props) {
 
       {/* FRACTAL curving along the top */}
       <text
-        fill="#2a1a0a"
+        fill={colors.text}
         fontSize={radius * 0.2}
         fontWeight="bold"
         fontFamily="Georgia, serif"
@@ -64,7 +72,7 @@ export function RecordLabel({ remixTitle, cx, cy, radius }: Props) {
 
       {/* RECORDS curving along the bottom */}
       <text
-        fill="#2a1a0a"
+        fill={colors.text}
         fontSize={radius * 0.2}
         fontWeight="bold"
         fontFamily="Georgia, serif"

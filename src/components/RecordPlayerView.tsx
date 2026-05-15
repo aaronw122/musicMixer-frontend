@@ -133,6 +133,7 @@ export function RecordPlayerView({ audioUrl, remixTitle = 'Your Remix' }: Props)
             remixTitle={remixTitle}
             tonearmAngle={tonearmAngle}
             isSpinning={isSpinning}
+            deckId="main"
           />
         </div>
 
@@ -152,16 +153,16 @@ export function RecordPlayerView({ audioUrl, remixTitle = 'Your Remix' }: Props)
 
       {/* Time display */}
       {duration > 0 && (
-        <div className="flex items-center gap-2 text-sm font-mono text-gray-400">
+        <div className="flex items-center gap-2 text-sm font-mono text-amber-200/50">
           <span>{formatTime(currentTime)}</span>
-          <span className="text-gray-600">/</span>
+          <span className="text-amber-200/25">/</span>
           <span>{formatTime(duration)}</span>
         </div>
       )}
 
       {/* Error display */}
       {error && (
-        <p className="text-sm text-red-400 text-center">{error}</p>
+        <p className="text-sm text-amber-400 text-center">{error}</p>
       )}
     </div>
   );

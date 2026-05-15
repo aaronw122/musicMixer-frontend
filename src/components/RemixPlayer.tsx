@@ -67,7 +67,7 @@ export function RemixPlayer({
         className={`rounded-lg border p-4 ${
           usedFallback
             ? 'border-amber-700/50 bg-amber-950/20'
-            : 'border-gray-700 bg-gray-900/30'
+            : 'border-amber-800/30 bg-black/20'
         }`}
       >
         {usedFallback && (
@@ -75,7 +75,7 @@ export function RemixPlayer({
             Generated with automatic defaults
           </p>
         )}
-        <p className="text-sm text-gray-300">{explanation}</p>
+        <p className="text-sm text-amber-100/70">{explanation}</p>
       </div>
 
       {/* Warnings */}
@@ -93,7 +93,7 @@ export function RemixPlayer({
       )}
 
       {/* Expiration notice */}
-      <p className="text-xs text-gray-600 text-center">
+      <p className="text-xs text-amber-200/30 text-center">
         {expiresAt
           ? `This remix will expire in ${formatExpiresIn(expiresAt) ?? 'approximately 3 hours'}.`
           : 'This remix will expire in approximately 3 hours.'}
@@ -102,20 +102,20 @@ export function RemixPlayer({
       {/* New remix button */}
       {confirmNew ? (
         <div className="text-center space-y-2">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-amber-200/50">
             {listenMode
               ? 'Start creating your own remix?'
               : 'Creating a new remix will replace this one. Continue?'}
           </p>
           <div className="flex justify-center gap-3">
             <button
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500"
+              className="rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 px-4 py-2 text-sm font-medium text-amber-50 hover:from-amber-500 hover:to-amber-700 transition-colors min-h-[44px]"
               onClick={onNewRemix}
             >
               {listenMode ? 'Yes, let\'s go' : 'Yes, create new'}
             </button>
             <button
-              className="rounded-lg bg-gray-700 px-4 py-2 text-sm text-gray-300 hover:bg-gray-600"
+              className="rounded-lg bg-amber-900/40 border border-amber-800/30 px-4 py-2 text-sm text-amber-200/60 hover:bg-amber-900/60 transition-colors min-h-[44px]"
               onClick={() => setConfirmNew(false)}
             >
               Keep listening
@@ -124,7 +124,7 @@ export function RemixPlayer({
         </div>
       ) : (
         <button
-          className="w-full rounded-lg border border-gray-700 py-3 text-sm text-gray-400 hover:border-gray-500 hover:text-gray-300"
+          className="w-full rounded-lg border border-amber-800/40 py-3 text-sm text-amber-200/50 hover:border-amber-700/60 hover:text-amber-200/70 transition-colors min-h-[44px]"
           onClick={() => setConfirmNew(true)}
         >
           Create New Remix

@@ -105,13 +105,13 @@ function SmsDialog({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-sm mx-4 rounded-2xl bg-gray-900 border border-gray-700/50 p-6 shadow-2xl">
-        <p className="text-center text-white text-base font-medium mb-5">
+      <div className="w-full max-w-sm mx-4 rounded-2xl border p-6 shadow-2xl" style={{ backgroundColor: 'var(--board-bg)', borderColor: 'var(--board-border)' }}>
+        <p className="text-center text-amber-50 text-base font-medium mb-5">
           We'll text you when your remix is ready
         </p>
 
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg select-none">+1</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-200/50 text-lg select-none">+1</span>
           <input
             type="tel"
             inputMode="tel"
@@ -122,30 +122,30 @@ function SmsDialog({
             onKeyDown={(e) => {
               if (e.key === 'Enter' && valid && !sending) handleSubmit();
             }}
-            className="w-full rounded-lg bg-gray-800 border border-gray-600 pl-12 pr-4 py-3 text-white text-lg placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg bg-black/30 border border-amber-800/50 pl-12 pr-4 py-3 text-amber-50 text-lg placeholder-amber-200/30 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
           />
         </div>
 
         {error && (
-          <p className="mt-2 text-xs text-red-400 text-center">{error}</p>
+          <p className="mt-2 text-xs text-amber-400 text-center">{error}</p>
         )}
 
         <button
           disabled={!valid || sending}
           onClick={handleSubmit}
-          className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="mt-4 w-full rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 px-4 py-3 text-sm font-medium text-amber-50 transition-colors hover:from-amber-500 hover:to-amber-700 disabled:opacity-40 disabled:cursor-not-allowed min-h-[44px]"
         >
           {sending ? 'Sending...' : 'Send'}
         </button>
 
-        <p className="mt-4 text-[11px] text-gray-500 text-center leading-relaxed">
+        <p className="mt-4 text-[11px] text-amber-200/30 text-center leading-relaxed">
           By clicking Send, I consent to receive SMS notifications &amp; alerts
-          from <strong className="text-gray-400">musicMixer</strong>.
+          from <strong className="text-amber-200/50">musicMixer</strong>.
           Message frequency varies. Msg &amp; data rates may apply.
           Reply STOP to unsubscribe at any time.{' '}
-          <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-400">Terms</a>
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-200/50">Terms</a>
           {' & '}
-          <a href="/privacy.html" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-400">Privacy</a>.
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-200/50">Privacy</a>.
         </p>
       </div>
     </div>
@@ -162,20 +162,20 @@ export function ProgressDisplay({ progress, sessionId, onCancel }: Props) {
       <VinylMergeAnimation progress={progress.progress} />
 
       <div>
-        <p className="text-lg font-medium text-white">{stepLabel}</p>
-        <p className="mt-3 text-sm text-gray-400">{progress.detail}</p>
+        <p className="text-lg font-medium text-amber-50">{stepLabel}</p>
+        <p className="mt-3 text-sm text-amber-200/50">{progress.detail}</p>
       </div>
 
       <div className="space-y-2">
         {progress.step !== 'complete' && STEP_ORDER.includes(progress.step) && (
-          <p className="text-xs text-gray-500 text-left">
+          <p className="text-xs text-amber-200/40 text-left">
             Step {STEP_ORDER.indexOf(progress.step) + 1} of {STEP_ORDER.length - 1}
           </p>
         )}
 
-        <div className="relative h-5 rounded-full bg-gray-800 overflow-hidden">
+        <div className="relative h-5 rounded-full bg-black/30 overflow-hidden border border-amber-900/30">
           <div
-            className="h-full rounded-full bg-blue-500 transition-all duration-500 ease-out"
+            className="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-500 ease-out"
             style={{ width: `${pct}%` }}
           />
           <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white">
@@ -185,13 +185,13 @@ export function ProgressDisplay({ progress, sessionId, onCancel }: Props) {
       </div>
 
       {smsState === 'confirmed' ? (
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-amber-200/60">
           <span className="text-green-400 mr-1">&#10003;</span>
           We'll text you
         </p>
       ) : (
         <button
-          className="block mx-auto text-sm text-gray-400 hover:text-white transition-colors"
+          className="text-sm text-amber-200/50 hover:text-white transition-colors min-h-[44px]"
           onClick={() => setSmsState('dialog-open')}
         >
           <SmsIcon />
@@ -200,7 +200,7 @@ export function ProgressDisplay({ progress, sessionId, onCancel }: Props) {
       )}
 
       <button
-        className="block mx-auto text-sm text-gray-500 hover:text-gray-300 underline"
+        className="text-sm text-amber-200/30 hover:text-amber-200/60 underline min-h-[44px]"
         onClick={onCancel}
       >
         Cancel
