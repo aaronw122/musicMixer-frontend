@@ -2,6 +2,7 @@ import { useReducer, useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ProgressDisplay } from './ProgressDisplay';
 import { RemixPlayer } from './RemixPlayer';
+import { ShareButton } from './ShareButton';
 import { useRemixProgress } from '../hooks/useRemixProgress';
 import { getPublicRemix } from '../api/client';
 import type { AppAction, ProgressEvent } from '../types';
@@ -142,16 +143,21 @@ export function RemixPage() {
 
     case 'ready':
       return (
-        <RemixPlayer
-          sessionId={sessionId}
-          explanation={state.explanation}
-          warnings={state.warnings}
-          usedFallback={state.usedFallback}
-          keyWarning={state.keyWarning}
-          expiresAt={expiresAt}
-          onNewRemix={goHome}
-          listenMode={!isCreator}
-        />
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <ShareButton sessionId={sessionId} />
+          </div>
+          <RemixPlayer
+            sessionId={sessionId}
+            explanation={state.explanation}
+            warnings={state.warnings}
+            usedFallback={state.usedFallback}
+            keyWarning={state.keyWarning}
+            expiresAt={expiresAt}
+            onNewRemix={goHome}
+            listenMode={!isCreator}
+          />
+        </div>
       );
 
     case 'expired':

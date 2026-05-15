@@ -1,14 +1,26 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { RemixSession } from './components/RemixSession';
-import { ListenView } from './components/ListenView';
-import { ShareButton } from './components/ShareButton';
-import { useListenMode } from './hooks/useListenMode';
+import { RemixPage } from './components/RemixPage';
 import soundboardImg from './assets/soundboard.png';
 
-function App() {
-  const listenMode = useListenMode();
-  const [readySessionId, setReadySessionId] = useState<string | null>(null);
+/** Redirect legacy ?listen=<id> share links to /remix/:id */
+function HomeWithRedirect() {
+  const navigate = useNavigate();
+  const params = new URLSearchParams(window.location.search);
+  const listenId = params.get('listen');
 
+  useEffect(() => {
+    if (listenId) {
+      navigate(`/remix/${listenId}`, { replace: true });
+    }
+  }, [listenId, navigate]);
+
+  if (listenId) return null; // Will redirect
+  return <RemixSession />;
+}
+
+function App() {
   return (
     <div
       className="min-h-screen text-gray-100"
@@ -16,11 +28,6 @@ function App() {
     >
       <div className="mx-auto max-w-6xl px-4 py-12">
         <header className="relative mb-6 text-center">
-          {listenMode.mode === 'create' && readySessionId && (
-            <div className="absolute right-0 top-0">
-              <ShareButton sessionId={readySessionId} />
-            </div>
-          )}
           <img
             src={soundboardImg}
             alt="Soundboard mixer"
@@ -32,14 +39,10 @@ function App() {
           </p>
         </header>
 
-        {listenMode.mode === 'create' ? (
-          <RemixSession onSessionReady={setReadySessionId} />
-        ) : (
-          <ListenView
-            state={listenMode.state}
-            onCreateRemix={listenMode.exitListenMode}
-          />
-        )}
+        <Routes>
+          <Route path="/" element={<HomeWithRedirect />} />
+          <Route path="/remix/:sessionId" element={<RemixPage />} />
+        </Routes>
       </div>
       <footer className="py-6 text-center text-xs text-amber-200/25">
         <div className="flex items-center justify-center gap-3">
