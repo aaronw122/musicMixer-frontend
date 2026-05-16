@@ -131,8 +131,8 @@ export function useShelf() {
     try {
       const createdRecord = await addShelfRecord(youtubeUrl);
       setRecords((current) => [
-        createdRecord,
         ...current.filter((record) => record.id !== createdRecord.id),
+        createdRecord,
       ]);
       setSelectionState((current) => ({ ...current, previewRecord: createdRecord }));
       return createdRecord;

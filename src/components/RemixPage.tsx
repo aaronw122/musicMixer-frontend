@@ -1,11 +1,11 @@
 import { useReducer, useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ProgressDisplay } from './ProgressDisplay';
+import { MixProcess } from './MixProcess';
 import { RemixPlayer } from './RemixPlayer';
 import { ShareButton } from './ShareButton';
 import { useRemixProgress } from '../hooks/useRemixProgress';
 import { getPublicRemix } from '../api/client';
-import type { AppAction, ProgressEvent } from '../types';
+import type { AppAction, ProgressEvent, SongInput } from '../types';
 
 type PagePhase =
   | { kind: 'loading' }
@@ -50,7 +50,7 @@ export function RemixPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const routeState = location.state as { creator?: boolean } | null;
+  const routeState = location.state as { creator?: boolean; songA?: SongInput; songB?: SongInput } | null;
   const isCreator = !!routeState?.creator;
 
   const [state, dispatch] = useReducer(pageReducer, undefined, (): PagePhase => {
@@ -101,6 +101,10 @@ export function RemixPage() {
   );
 
   const goHome = useCallback(() => navigate('/'), [navigate]);
+  const mixedRecord = {
+    leftThumbnailUrl: routeState?.songA?.type === 'youtube' ? routeState.songA.thumbnailUrl : undefined,
+    rightThumbnailUrl: routeState?.songB?.type === 'youtube' ? routeState.songB.thumbnailUrl : undefined,
+  };
 
   if (!sessionId) return null;
 
@@ -134,13 +138,13 @@ export function RemixPage() {
 
     case 'processing':
       return (
-        <div className="relative left-1/2 w-screen -translate-x-1/2 px-80 py-4">
-          <ProgressDisplay
-            progress={state.progress}
-            sessionId={sessionId}
-            onCancel={goHome}
-          />
-        </div>
+        <MixProcess
+          songA={(routeState?.songA ?? { type: 'file' }) as SongInput}
+          songB={(routeState?.songB ?? { type: 'file' }) as SongInput}
+          progress={state.progress}
+          sessionId={sessionId}
+          onCancel={goHome}
+        />
       );
 
     case 'ready':
@@ -158,6 +162,8 @@ export function RemixPage() {
             expiresAt={expiresAt}
             onNewRemix={goHome}
             listenMode={!isCreator}
+            skipPlacement={isCreator}
+            mixedRecord={mixedRecord}
           />
         </div>
       );
