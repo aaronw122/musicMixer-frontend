@@ -12,7 +12,7 @@ type Props = {
 };
 
 export function Tonearm({ pivotX, pivotY, angle, scale, deckId = 'default' }: Props) {
-  const armLength = 138 * scale;
+  const armLength = 95 * scale;
   const armWidth = 3 * scale;
   const counterweightOuterR = 9;
   const counterweightInnerR = 6;
@@ -33,7 +33,7 @@ export function Tonearm({ pivotX, pivotY, angle, scale, deckId = 'default' }: Pr
     <g
       style={{
         transformOrigin: `${pivotX}px ${pivotY}px`,
-        transform: `rotate(${angle}deg)`,
+        transform: `rotate(${-angle}deg)`,
         transition: 'transform 1200ms cubic-bezier(.4,.1,.3,1)',
       }}
     >
@@ -105,7 +105,7 @@ export function Tonearm({ pivotX, pivotY, angle, scale, deckId = 'default' }: Pr
       />
 
       {/* === Cartridge/headshell at the bottom (rotated 20deg) === */}
-      <g transform={`rotate(20, ${armEndX}, ${armEndY})`}>
+      <g transform={`rotate(-20, ${armEndX}, ${armEndY})`}>
         {/* Outer shell */}
         <rect
           x={armEndX - shellW / 2}

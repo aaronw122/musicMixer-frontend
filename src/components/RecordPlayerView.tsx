@@ -18,7 +18,7 @@ type Props = {
 };
 
 // Tonearm angles
-const PARKED_ANGLE = 0;
+const PARKED_ANGLE = 7;
 const OUTER_GROOVE_ANGLE = 25;
 const INNER_GROOVE_ANGLE = 32;
 const ANGLE_RANGE = INNER_GROOVE_ANGLE - OUTER_GROOVE_ANGLE;

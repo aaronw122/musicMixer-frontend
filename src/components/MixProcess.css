@@ -244,12 +244,12 @@
 .mix-scene.is-breaking .mix-vinyl.right { opacity: 1; }
 
 .mix-scene.is-mixing .mix-vinyl.left {
-  transform: translate(-130px, -10px) rotate(0deg) scale(0.75);
+  transform: translate(-130px, -40px) rotate(0deg) scale(0.75);
   opacity: 1;
 }
 
 .mix-scene.is-mixing .mix-vinyl.right {
-  transform: translate(130px, -10px) rotate(0deg) scale(0.75);
+  transform: translate(130px, -40px) rotate(0deg) scale(0.75);
   opacity: 1;
 }
 
@@ -369,11 +369,11 @@
   opacity: 1;
 }
 .mix-scene.is-mixing .mix-vinyl-spindle.left {
-  transform: translate(-130px, -10px) scale(0.75);
+  transform: translate(-130px, -40px) scale(0.75);
   opacity: 1;
 }
 .mix-scene.is-mixing .mix-vinyl-spindle.right {
-  transform: translate(130px, -10px) scale(0.75);
+  transform: translate(130px, -40px) scale(0.75);
   opacity: 1;
 }
 .mix-scene.is-sealed .mix-vinyl-spindle,
@@ -665,6 +665,47 @@
   }
   .mix-progress-percent { font-size: 56px; }
   .mix-progress-step { letter-spacing: 0.16em; }
+}
+
+@media (max-height: 600px) {
+  .mix-halves-stage {
+    transform: translateY(-8vh);
+  }
+  .mix-scene.is-mixing .mix-vinyl.left {
+    transform: translate(-130px, -8vh) rotate(0deg) scale(0.65);
+  }
+  .mix-scene.is-mixing .mix-vinyl.right {
+    transform: translate(130px, -8vh) rotate(0deg) scale(0.65);
+  }
+  .mix-scene.is-mixing .mix-vinyl-spindle.left {
+    transform: translate(-130px, -8vh);
+  }
+  .mix-scene.is-mixing .mix-vinyl-spindle.right {
+    transform: translate(130px, -8vh);
+  }
+  .mix-progress-shell {
+    padding-bottom: 4vh;
+  }
+  .mix-progress-percent {
+    font-size: 48px;
+  }
+  .mix-progress-step {
+    margin-top: 6px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+  .mix-progress-bar {
+    margin-top: 10px;
+  }
+  .mix-actions {
+    margin-top: 8px;
+    gap: 0;
+  }
+  .mix-actions button,
+  .mix-actions span {
+    min-height: 36px;
+    font-size: 11px;
+  }
 }
 
 .mix-preview {
