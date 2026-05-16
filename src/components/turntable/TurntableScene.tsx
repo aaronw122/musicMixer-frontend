@@ -4,7 +4,7 @@ import { Tonearm } from './Tonearm';
 
 export type TurntableSceneProps = {
   remixTitle: string;
-  /** Tonearm rotation angle: 0 = parked, ~25 = outer groove, ~32 = inner groove */
+  /** Tonearm rotation angle: 7 = parked (rest cradle), ~-12 = outer groove, ~-19 = inner groove */
   tonearmAngle: number;
   /** Whether the record is currently spinning */
   isSpinning: boolean;

@@ -89,7 +89,7 @@ export function MixProcessPreview() {
           <h2>6. Player record - placed</h2>
           <TurntableScene
             remixTitle="Your Remix"
-            tonearmAngle={0}
+            tonearmAngle={7}
             isSpinning={false}
             deckId="preview-idle"
             mixedRecord={mixedRecord}
@@ -99,7 +99,7 @@ export function MixProcessPreview() {
           <h2>7. Player record - playing</h2>
           <TurntableScene
             remixTitle="Your Remix"
-            tonearmAngle={27}
+            tonearmAngle={-12}
             isSpinning={true}
             deckId="preview-playing"
             mixedRecord={mixedRecord}
