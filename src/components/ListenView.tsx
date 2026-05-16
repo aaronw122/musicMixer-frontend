@@ -79,6 +79,14 @@ export function ListenView({ state, onCreateRemix }: Props) {
                 expiresAt={state.expiresAt}
                 onNewRemix={onCreateRemix}
                 listenMode={true}
+                mixedRecord={
+                  state.thumbnailUrlA || state.thumbnailUrlB
+                    ? {
+                        leftThumbnailUrl: state.thumbnailUrlA ?? undefined,
+                        rightThumbnailUrl: state.thumbnailUrlB ?? undefined,
+                      }
+                    : undefined
+                }
               />
             </div>
           }

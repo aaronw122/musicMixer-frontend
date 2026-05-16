@@ -98,6 +98,8 @@ export function useListenMode(): ListenModeResult {
           warnings: data.warnings,
           usedFallback: data.usedFallback,
           expiresAt: data.expires_at,
+          thumbnailUrlA: data.thumbnail_url_a,
+          thumbnailUrlB: data.thumbnail_url_b,
         });
       } else if (status === 202) {
         // Remix is still being created — enter processing state and poll
