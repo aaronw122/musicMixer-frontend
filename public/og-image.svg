@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="0%" r="120%">
+      <stop offset="0%" stop-color="#2a160a"/>
+      <stop offset="60%" stop-color="#1a0e07"/>
+      <stop offset="100%" stop-color="#0b0603"/>
+    </radialGradient>
+    <radialGradient id="vinyl" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2a2a2c"/>
+      <stop offset="100%" stop-color="#181819"/>
+    </radialGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- Record -->
+  <g transform="translate(600, 300)">
+    <!-- Outer edge -->
+    <circle r="200" fill="#0d0d0e"/>
+    <!-- Vinyl body -->
+    <circle r="196" fill="url(#vinyl)"/>
+    <!-- Groove rings -->
+    <circle r="180" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/>
+    <circle r="160" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.8"/>
+    <circle r="140" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/>
+    <circle r="120" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.8"/>
+    <circle r="100" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.8"/>
+    <!-- Amber label -->
+    <circle r="72" fill="#d4a04a"/>
+    <circle r="61" fill="none" stroke="#c4903a" stroke-width="1"/>
+    <!-- Brand text -->
+    <text y="-8" text-anchor="middle" fill="#2a1a0a" font-size="18" font-weight="bold" font-family="Georgia, serif" letter-spacing="0.08em">FRACTAL</text>
+    <text y="14" text-anchor="middle" fill="#2a1a0a" font-size="18" font-weight="bold" font-family="Georgia, serif" letter-spacing="0.08em">RECORDS</text>
+    <!-- Spindle hole -->
+    <circle r="8" fill="#1a1a1a"/>
+  </g>
+  <!-- Title -->
+  <text x="600" y="565" text-anchor="middle" fill="#f5b042" font-size="32" font-weight="bold" font-family="-apple-system, SF Pro Text, Inter, system-ui, sans-serif" letter-spacing="0.05em">musicMixer</text>
+  <text x="600" y="595" text-anchor="middle" fill="#8a6a3a" font-size="16" font-family="-apple-system, SF Pro Text, Inter, system-ui, sans-serif">AI-powered music remixing</text>
+</svg>
