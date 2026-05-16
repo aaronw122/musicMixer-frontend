@@ -158,7 +158,7 @@ export function ProgressDisplay({ progress, sessionId, onCancel }: Props) {
   const [smsState, setSmsState] = useState<SmsState>('idle');
 
   return (
-    <div className="space-y-10 text-center">
+    <div className="w-full space-y-10 text-center">
       <VinylMergeAnimation progress={progress.progress} />
 
       <div>
@@ -184,27 +184,29 @@ export function ProgressDisplay({ progress, sessionId, onCancel }: Props) {
         </div>
       </div>
 
-      {smsState === 'confirmed' ? (
-        <p className="text-sm text-amber-200/60">
-          <span className="text-green-400 mr-1">&#10003;</span>
-          We'll text you
-        </p>
-      ) : (
-        <button
-          className="text-sm text-amber-200/50 hover:text-white transition-colors min-h-[44px]"
-          onClick={() => setSmsState('dialog-open')}
-        >
-          <SmsIcon />
-          Text me when it's ready
-        </button>
-      )}
+      <div className="flex flex-col items-center gap-2">
+        {smsState === 'confirmed' ? (
+          <p className="text-sm text-amber-200/60">
+            <span className="text-green-400 mr-1">&#10003;</span>
+            We'll text you
+          </p>
+        ) : (
+          <button
+            className="text-sm text-amber-200/50 hover:text-white transition-colors min-h-[44px]"
+            onClick={() => setSmsState('dialog-open')}
+          >
+            <SmsIcon />
+            Text me when it's ready
+          </button>
+        )}
 
-      <button
-        className="text-sm text-amber-200/30 hover:text-amber-200/60 underline min-h-[44px]"
-        onClick={onCancel}
-      >
-        Cancel
-      </button>
+        <button
+          className="text-sm text-amber-200/30 hover:text-amber-200/60 underline min-h-[44px]"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+      </div>
 
       {(smsState === 'dialog-open' || smsState === 'sending' || smsState === 'error') && (
         <SmsDialog

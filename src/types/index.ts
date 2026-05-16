@@ -130,6 +130,24 @@ export type ListenState =
   | { substate: 'unavailable' }
   | { substate: 'expired' };
 
+// === Record Shelf Types ===
+
+export type ShelfRecord = {
+  id: string;
+  title: string;
+  artist: string;
+  sleeve_image_url: string;
+  youtube_url: string;
+  thumbnail_url: string;
+};
+
+export type ShelfSelectionState = {
+  step: 'vocals' | 'instrumentals';
+  vocalsRecord: ShelfRecord | null;
+  instrumentalsRecord: ShelfRecord | null;
+  previewRecord: ShelfRecord | null;
+};
+
 // === API Error Types ===
 
 export type CreateRemixError =

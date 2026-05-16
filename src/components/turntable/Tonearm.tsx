@@ -3,7 +3,7 @@ type Props = {
   pivotX: number;
   /** Pivot point Y coordinate */
   pivotY: number;
-  /** Rotation angle in degrees (0 = parked, ~25-32 = playing) */
+  /** Rotation angle in degrees (7 = parked, ~22 = playing) */
   angle: number;
   /** Length scaling factor for the tonearm */
   scale: number;
@@ -12,57 +12,79 @@ type Props = {
 };
 
 export function Tonearm({ pivotX, pivotY, angle, scale, deckId = 'default' }: Props) {
-  // Arm dimensions relative to scale
-  const armLength = 130 * scale;
-  const headLength = 18 * scale;
-  const armWidth = 4 * scale;
-  const counterweightR = 6 * scale;
+  const armLength = 138 * scale;
+  const armWidth = 3 * scale;
+  const counterweightOuterR = 9;
+  const counterweightInnerR = 6;
 
   const metalGradientId = `tonearm-metal-${deckId}`;
+
+  // Arm endpoint (straight vertical arm extending downward from pivot)
+  const armEndX = pivotX;
+  const armEndY = pivotY + armLength;
+
+  // Cartridge/headshell dimensions
+  const shellW = 18;
+  const shellH = 14;
+  const innerW = 14;
+  const innerH = 8;
 
   return (
     <g
       style={{
         transformOrigin: `${pivotX}px ${pivotY}px`,
         transform: `rotate(${angle}deg)`,
-        transition: 'transform 0.8s ease-in-out',
+        transition: 'transform 1200ms cubic-bezier(.4,.1,.3,1)',
       }}
     >
-      {/* Drop shadow */}
-      <line
-        x1={pivotX}
-        y1={pivotY}
-        x2={pivotX - armLength * 0.25}
-        y2={pivotY + armLength * 0.92}
-        stroke="rgba(0,0,0,0.25)"
-        strokeWidth={armWidth + 2}
-        strokeLinecap="round"
-        transform="translate(2, 2)"
-      />
-
-      {/* Counterweight (behind pivot) */}
       <defs>
-        <radialGradient id={`cw-grad-${deckId}`} cx="40%" cy="35%">
-          <stop offset="0%" stopColor="#c0c0c0" />
-          <stop offset="60%" stopColor="#909090" />
-          <stop offset="100%" stopColor="#606060" />
-        </radialGradient>
+        {/* Brushed metal gradient for the arm — left-to-right highlight */}
+        <linearGradient id={metalGradientId} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#b8b9bc" />
+          <stop offset="35%" stopColor="#e2e3e6" />
+          <stop offset="65%" stopColor="#c8c9cc" />
+          <stop offset="100%" stopColor="#a8a9ac" />
+        </linearGradient>
+
+        {/* Pivot mount gradient */}
         <radialGradient id={`pivot-grad-${deckId}`} cx="40%" cy="35%">
           <stop offset="0%" stopColor="#d0d0d0" />
           <stop offset="50%" stopColor="#aaa" />
           <stop offset="100%" stopColor="#777" />
         </radialGradient>
       </defs>
-      <circle
-        cx={pivotX + counterweightR * 1.5}
-        cy={pivotY - counterweightR * 0.5}
-        r={counterweightR}
-        fill={`url(#cw-grad-${deckId})`}
-        stroke="#555"
-        strokeWidth={0.5}
+
+      {/* Drop shadow */}
+      <rect
+        x={pivotX - armWidth / 2 + 2}
+        y={pivotY + 2}
+        width={armWidth}
+        height={armLength}
+        rx={armWidth / 2}
+        fill="rgba(0,0,0,0.25)"
+        filter="url(#none)"
+        opacity="0.4"
       />
 
-      {/* Pivot mount */}
+      {/* === Counterweight (above pivot) === */}
+      {/* Outer ring */}
+      <circle
+        cx={pivotX}
+        cy={pivotY - counterweightOuterR * 1.2}
+        r={counterweightOuterR}
+        fill="#3a3b3d"
+        stroke="rgba(0,0,0,0.3)"
+        strokeWidth="0.5"
+      />
+      {/* Inner hub */}
+      <circle
+        cx={pivotX}
+        cy={pivotY - counterweightInnerR * 1.4}
+        r={counterweightInnerR}
+        fill="#1d1e20"
+      />
+
+      {/* === Pivot mount === */}
       <circle
         cx={pivotX}
         cy={pivotY}
@@ -72,53 +94,47 @@ export function Tonearm({ pivotX, pivotY, angle, scale, deckId = 'default' }: Pr
         strokeWidth={0.5}
       />
 
-      {/* Main arm — brushed metal gradient */}
-      <defs>
-        <linearGradient id={metalGradientId} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#b0b0b0" />
-          <stop offset="40%" stopColor="#d8d8d8" />
-          <stop offset="60%" stopColor="#c0c0c0" />
-          <stop offset="100%" stopColor="#a0a0a0" />
-        </linearGradient>
-      </defs>
-      <line
-        x1={pivotX}
-        y1={pivotY}
-        x2={pivotX - armLength * 0.25}
-        y2={pivotY + armLength * 0.92}
-        stroke={`url(#${metalGradientId})`}
-        strokeWidth={armWidth}
-        strokeLinecap="round"
-      />
-
-      {/* Headshell — angled piece at the end */}
-      <line
-        x1={pivotX - armLength * 0.25}
-        y1={pivotY + armLength * 0.92}
-        x2={pivotX - armLength * 0.25 - headLength * 0.35}
-        y2={pivotY + armLength * 0.92 + headLength}
-        stroke={`url(#${metalGradientId})`}
-        strokeWidth={armWidth * 0.7}
-        strokeLinecap="round"
-      />
-
-      {/* Cartridge */}
+      {/* === Main arm — silver vertical rect === */}
       <rect
-        x={pivotX - armLength * 0.25 - headLength * 0.35 - armWidth * 0.4}
-        y={pivotY + armLength * 0.92 + headLength - 1}
-        width={armWidth * 0.8}
-        height={4 * scale}
-        fill="#444"
-        rx={1}
+        x={pivotX - armWidth / 2}
+        y={pivotY}
+        width={armWidth}
+        height={armLength}
+        rx={armWidth / 2}
+        fill={`url(#${metalGradientId})`}
       />
 
-      {/* Needle tip */}
-      <circle
-        cx={pivotX - armLength * 0.25 - headLength * 0.35}
-        cy={pivotY + armLength * 0.92 + headLength + 4 * scale}
-        r={1 * scale}
-        fill="#ddd"
-      />
+      {/* === Cartridge/headshell at the bottom (rotated 20deg) === */}
+      <g transform={`rotate(20, ${armEndX}, ${armEndY})`}>
+        {/* Outer shell */}
+        <rect
+          x={armEndX - shellW / 2}
+          y={armEndY - 2}
+          width={shellW}
+          height={shellH}
+          rx={2}
+          fill="#e0e1e4"
+          stroke="rgba(0,0,0,0.15)"
+          strokeWidth="0.5"
+        />
+        {/* Inner panel */}
+        <rect
+          x={armEndX - innerW / 2}
+          y={armEndY - 2 + (shellH - innerH) / 2}
+          width={innerW}
+          height={innerH}
+          rx={1}
+          fill="#1a1b1d"
+        />
+        {/* Stylus stub */}
+        <rect
+          x={armEndX - 0.5}
+          y={armEndY - 2 + shellH}
+          width={1}
+          height={4}
+          fill="#f0f0f0"
+        />
+      </g>
     </g>
   );
 }
