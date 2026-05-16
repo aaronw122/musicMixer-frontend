@@ -38,7 +38,7 @@
 .mix-scene.is-mixing .mix-bg-table { opacity: 0.18; }
 .mix-scene.is-mixing .mix-bg-studio,
 .mix-scene.is-sealed .mix-bg-studio { opacity: 1; }
-.mix-scene.is-done .mix-bg-table { opacity: 1; }
+.mix-scene.is-done .mix-bg-table { opacity: 0; }
 .mix-scene.is-done .mix-bg-studio { opacity: 0; }
 
 .mix-dust {
@@ -56,10 +56,13 @@
 
 .mix-dust span {
   position: absolute;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,212,140,0.9), rgba(245,176,66,0));
+  width: 18px;
+  height: 18px;
+  color: rgba(255,212,140,0.9);
+  font-family: "SF Pro Display", -apple-system, system-ui, sans-serif;
+  font-size: 18px;
+  line-height: 1;
+  text-shadow: 0 0 10px rgba(245,176,66,0.45);
   animation: mix-dust-rise 6s linear infinite;
 }
 
@@ -114,9 +117,7 @@
   position: absolute;
   inset: 12px;
   border-radius: 50%;
-  background-size: cover;
-  background-position: center;
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.6);
+  overflow: hidden;
 }
 
 .mix-halves-stage {
@@ -136,15 +137,24 @@
   height: 360px;
   border-radius: 50%;
   background-color: #0c0c0c;
-  background-size: cover;
-  background-position: center;
   filter: drop-shadow(0 16px 24px rgba(0,0,0,0.55));
+  pointer-events: none;
+}
+
+.mix-vinyl-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
   pointer-events: none;
 }
 
 .mix-vinyl {
   opacity: 0;
   transform: translate(0, 0) rotate(0) scale(0.42);
+  -webkit-mask-image: radial-gradient(circle at center, #000 70.2%, transparent 70.7%);
+  mask-image: radial-gradient(circle at center, #000 70.2%, transparent 70.7%);
   transition:
     transform 1400ms cubic-bezier(.45,.05,.25,1),
     opacity 600ms ease,
@@ -244,15 +254,45 @@
 }
 
 .mix-scene.is-sealed .mix-vinyl.left,
-.mix-scene.is-sealed .mix-vinyl.right {
-  transform: translate(0, -10px) rotate(0) scale(0.78);
-  opacity: 1;
-}
-
+.mix-scene.is-sealed .mix-vinyl.right,
 .mix-scene.is-done .mix-vinyl.left,
 .mix-scene.is-done .mix-vinyl.right {
-  transform: translate(0, 180px) rotate(720deg) scale(0.42);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mix-vinyl-merged {
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  overflow: hidden;
+  filter: drop-shadow(0 16px 24px rgba(0,0,0,0.55));
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(0, -10px) scale(0.78);
+  transition:
+    transform 1400ms cubic-bezier(.45,.05,.25,1),
+    opacity 600ms ease;
+}
+
+.mix-vinyl-merged svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mix-scene.is-sealed .mix-vinyl-merged {
   opacity: 1;
+  transform: translate(0, -10px) scale(0.78);
+}
+
+.mix-scene.is-done .mix-vinyl-merged {
+  opacity: 0;
+  transform: translate(0, 60px) scale(0.5);
+  transition:
+    transform 500ms cubic-bezier(.45,.05,.25,1),
+    opacity 400ms ease 100ms;
 }
 
 .mix-vinyl.left,
@@ -359,9 +399,9 @@
 
 .mix-seam-glow {
   position: absolute;
-  width: 8px;
-  height: 280px;
-  background: linear-gradient(180deg, rgba(245,176,66,0) 0%, rgba(255,236,180,0.95) 35%, rgba(245,176,66,0.95) 50%, rgba(255,236,180,0.95) 65%, rgba(245,176,66,0) 100%);
+  width: 360px;
+  height: 360px;
+  transform: translate(0, -30px) scale(0.78);
   filter: blur(6px);
   opacity: 0;
   pointer-events: none;
@@ -376,8 +416,8 @@
 .mix-scene.is-done .mix-seam-glow { opacity: 0; }
 
 @keyframes mix-seam-pulse {
-  0%, 100% { transform: scaleY(1); filter: blur(6px); }
-  50% { transform: scaleY(1.05); filter: blur(10px); }
+  0%, 100% { filter: blur(6px); }
+  50% { filter: blur(10px); }
 }
 
 .mix-seal-ring {
@@ -405,31 +445,17 @@
 
 .mix-target-turntable {
   position: absolute;
-  bottom: 18vh;
   z-index: 2;
-  width: 280px;
-  height: 280px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 42% 38%, #34352f, #1c1d18 70%, #0d0e0a),
-    #0a0a0a;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.6), inset 0 0 0 8px #c2c4c8, inset 0 0 0 10px rgba(0,0,0,0.5);
+  width: min(512px, 90vw);
   opacity: 0;
   transform: scale(0.85);
   transition: opacity 500ms ease, transform 600ms ease;
 }
 
-.mix-target-turntable::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #1a1a1a;
-  box-shadow: 0 0 0 3px #555;
-  transform: translate(-50%, -50%);
+.mix-target-turntable svg {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .mix-scene.is-done .mix-target-turntable {
@@ -499,8 +525,9 @@
 
 .mix-actions {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 2px;
   margin-top: 18px;
   pointer-events: auto;
 }
@@ -638,9 +665,110 @@
   }
   .mix-progress-percent { font-size: 56px; }
   .mix-progress-step { letter-spacing: 0.16em; }
-  .mix-actions {
-    flex-direction: column;
-    gap: 2px;
-  }
 }
 
+.mix-preview {
+  width: min(1500px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  color: #fdf3df;
+}
+
+.mix-preview-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+}
+
+.mix-preview-header p {
+  margin: 0 0 4px;
+  color: rgba(245,176,66,0.75);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.mix-preview-header h1 {
+  margin: 0;
+  font-size: clamp(32px, 5vw, 64px);
+  line-height: 1;
+}
+
+.mix-preview-header a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: rgba(253,230,138,0.72);
+  text-decoration: underline;
+}
+
+.mix-preview-grid,
+.mix-preview-player-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.mix-preview-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(245,176,66,0.18);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.24);
+}
+
+.mix-preview-card h2 {
+  margin: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(245,176,66,0.14);
+  color: rgba(253,230,138,0.82);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mix-preview .mix-scene {
+  position: relative;
+  inset: auto;
+  z-index: 0;
+  width: 100%;
+  height: 430px;
+}
+
+.mix-preview .mix-progress-shell {
+  padding-bottom: 32px;
+}
+
+.mix-preview .mix-progress-percent {
+  font-size: 42px;
+}
+
+.mix-preview .mix-actions {
+  display: none;
+}
+
+.mix-preview-player-card {
+  padding-bottom: 18px;
+}
+
+.mix-preview-player-card svg {
+  width: min(620px, 100%);
+  margin: 0 auto;
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .mix-preview-grid,
+  .mix-preview-player-row {
+    grid-template-columns: 1fr;
+  }
+
+  .mix-preview-header {
+    align-items: start;
+    flex-direction: column;
+  }
+}

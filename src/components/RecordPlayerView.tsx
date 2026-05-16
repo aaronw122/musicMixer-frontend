@@ -8,6 +8,13 @@ type AnimationPhase = 'placing' | 'idle' | 'playing' | 'paused';
 type Props = {
   audioUrl: string;
   remixTitle?: string;
+  autoPlayAfterPlacement?: boolean;
+  /** Skip the placement animation (record already visible from mix process) */
+  skipPlacement?: boolean;
+  mixedRecord?: {
+    leftThumbnailUrl?: string;
+    rightThumbnailUrl?: string;
+  };
 };
 
 // Tonearm angles
@@ -27,8 +34,14 @@ function formatTime(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-export function RecordPlayerView({ audioUrl, remixTitle = 'Your Remix' }: Props) {
-  const [phase, setPhase] = useState<AnimationPhase>('placing');
+export function RecordPlayerView({
+  audioUrl,
+  remixTitle = 'Your Remix',
+  autoPlayAfterPlacement = false,
+  skipPlacement = false,
+  mixedRecord,
+}: Props) {
+  const [phase, setPhase] = useState<AnimationPhase>(skipPlacement ? 'idle' : 'placing');
 
   // Track whether we're in the middle of a play/pause transition
   const transitionRef = useRef(false);
@@ -44,14 +57,6 @@ export function RecordPlayerView({ audioUrl, remixTitle = 'Your Remix' }: Props)
     audioRef,
     error,
   } = useAudioPlayer({ audioUrl });
-
-  // === Phase 1: Record placement animation ===
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPhase('idle');
-    }, PLACEMENT_DURATION_MS);
-    return () => clearTimeout(timer);
-  }, []);
 
   // === Tonearm angle calculation ===
   const tonearmAngle = (() => {
@@ -89,6 +94,42 @@ export function RecordPlayerView({ audioUrl, remixTitle = 'Your Remix' }: Props)
     }, TONEARM_SWING_DELAY_MS);
   }, [phase, play]);
 
+  // === Phase 1: Record placement animation ===
+  useEffect(() => {
+    if (skipPlacement) {
+      if (autoPlayAfterPlacement) {
+        transitionRef.current = true;
+        setPhase('playing');
+        setTimeout(async () => {
+          try {
+            await play();
+          } catch {
+            setPhase('idle');
+          }
+          transitionRef.current = false;
+        }, TONEARM_SWING_DELAY_MS);
+      }
+      return;
+    }
+    const timer = setTimeout(() => {
+      if (autoPlayAfterPlacement) {
+        transitionRef.current = true;
+        setPhase('playing');
+        setTimeout(async () => {
+          try {
+            await play();
+          } catch {
+            setPhase('idle');
+          }
+          transitionRef.current = false;
+        }, TONEARM_SWING_DELAY_MS);
+        return;
+      }
+      setPhase('idle');
+    }, PLACEMENT_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [autoPlayAfterPlacement, skipPlacement, play]);
+
   // === Pause handler ===
   const handlePause = useCallback(() => {
     if (transitionRef.current) return;
@@ -112,7 +153,8 @@ export function RecordPlayerView({ audioUrl, remixTitle = 'Your Remix' }: Props)
   // === Sync phase when audio ends naturally ===
   useEffect(() => {
     if (phase === 'playing' && !audioIsPlaying && !transitionRef.current && duration > 0 && currentTime >= duration - 0.1) {
-      setPhase('idle');
+      const timer = setTimeout(() => setPhase('idle'), 0);
+      return () => clearTimeout(timer);
     }
   }, [audioIsPlaying, phase, duration, currentTime]);
 
@@ -134,6 +176,7 @@ export function RecordPlayerView({ audioUrl, remixTitle = 'Your Remix' }: Props)
             tonearmAngle={tonearmAngle}
             isSpinning={isSpinning}
             deckId="main"
+            mixedRecord={mixedRecord}
           />
         </div>
 

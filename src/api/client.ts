@@ -159,7 +159,8 @@ export async function fetchShelfRecords(): Promise<ShelfRecord[]> {
   if (!response.ok) {
     throw new Error('Failed to load shelf records');
   }
-  return response.json();
+  const data = await response.json();
+  return data.records;
 }
 
 /**

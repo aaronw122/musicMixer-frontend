@@ -101,6 +101,10 @@ export function RemixPage() {
   );
 
   const goHome = useCallback(() => navigate('/'), [navigate]);
+  const mixedRecord = {
+    leftThumbnailUrl: routeState?.songA?.type === 'youtube' ? routeState.songA.thumbnailUrl : undefined,
+    rightThumbnailUrl: routeState?.songB?.type === 'youtube' ? routeState.songB.thumbnailUrl : undefined,
+  };
 
   if (!sessionId) return null;
 
@@ -158,6 +162,8 @@ export function RemixPage() {
             expiresAt={expiresAt}
             onNewRemix={goHome}
             listenMode={!isCreator}
+            skipPlacement={isCreator}
+            mixedRecord={mixedRecord}
           />
         </div>
       );

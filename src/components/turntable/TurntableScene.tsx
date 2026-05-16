@@ -1,3 +1,4 @@
+import { MixedVinylRecord } from './MixedVinylRecord';
 import { RecordLabel } from './RecordLabel';
 import { Tonearm } from './Tonearm';
 
@@ -17,6 +18,11 @@ export type TurntableSceneProps = {
   thumbnailUrl?: string;
   /** Dominant color hex for vinyl tint (e.g., "#7A3B2E") */
   vinylColor?: string;
+  /** Composite remix record art: left half from song A, right half from song B */
+  mixedRecord?: {
+    leftThumbnailUrl?: string;
+    rightThumbnailUrl?: string;
+  };
 };
 
 // SVG viewBox dimensions
@@ -45,6 +51,7 @@ export function TurntableScene({
   isEmpty = false,
   thumbnailUrl,
   vinylColor,
+  mixedRecord,
 }: TurntableSceneProps) {
   // Helper to namespace SVG IDs per deck instance
   const id = (base: string) => `${base}-${deckId}`;
@@ -55,6 +62,7 @@ export function TurntableScene({
 
   // Determine vinyl fill color: use vinylColor if provided, else default dark
   const vinylFillColor = vinylColor ?? '#1a1a2e';
+  const hasMixedRecord = !!mixedRecord?.leftThumbnailUrl || !!mixedRecord?.rightThumbnailUrl;
 
   // Generate brushed-line texture lines for the plinth
   const brushedLines: React.ReactElement[] = [];
@@ -155,7 +163,7 @@ export function TurntableScene({
         {!isEmpty && (
           <>
             {/* Marbled vinyl — colored gradient based on vinylColor or default marble */}
-            {thumbnailUrl ? (
+            {thumbnailUrl || hasMixedRecord ? (
               <radialGradient id={id('vinylGradient')} cx="50%" cy="50%">
                 <stop offset="0%" stopColor={vinylFillColor} stopOpacity="0.8" />
                 <stop offset="100%" stopColor="#111" />
@@ -218,6 +226,7 @@ export function TurntableScene({
                 />
               </pattern>
             )}
+
           </>
         )}
       </defs>
@@ -274,13 +283,14 @@ export function TurntableScene({
 
       {/* === 33 / 45 / START buttons (top-right) === */}
       {(() => {
-        const btnY = 22;
+        const btnY = PIVOT_Y - 4;
         const btnH = 12;
-        const gap = 4;
+        const gap = 6;
         const startW = 30;
         const smallW = 22;
-        // Arrange right-to-left from the tonearm area
-        const baseX = PIVOT_X - 48;
+        // Arrange left of the tonearm rest area
+        const totalW = 2 * smallW + startW + 2 * gap;
+        const baseX = PIVOT_X - 20 - totalW;
         const buttons = [
           { label: '33', w: smallW, x: baseX },
           { label: '45', w: smallW, x: baseX + smallW + gap },
@@ -374,111 +384,126 @@ export function TurntableScene({
               repeatCount="indefinite"
             />
           )}
-          {/* Record body */}
-          <g clipPath={`url(#${id('recordClip')})`}>
-            <circle
+          {hasMixedRecord ? (
+            <MixedVinylRecord
               cx={PLATTER_CX}
               cy={PLATTER_CY}
-              r={RECORD_R * 1.4}
-              fill={`url(#${id(thumbnailUrl ? 'vinylGradient' : 'marbleGradient')})`}
-              filter={`url(#${id('marbleFx')})`}
+              radius={RECORD_R}
+              leftThumbnailUrl={mixedRecord?.leftThumbnailUrl}
+              rightThumbnailUrl={mixedRecord?.rightThumbnailUrl}
+              idPrefix={id('mixed')}
             />
-          </g>
-
-          {/* Record edge ring */}
-          <circle
-            cx={PLATTER_CX}
-            cy={PLATTER_CY}
-            r={RECORD_R - 1}
-            fill="none"
-            stroke="rgba(0,0,0,0.3)"
-            strokeWidth="1"
-          />
-
-          {/* Groove rings — subtle dark lines over the vinyl */}
-          {[0.94, 0.88, 0.82, 0.76, 0.70, 0.64, 0.58, 0.52, 0.46].map(
-            (pct) => (
-              <circle
-                key={pct}
-                cx={PLATTER_CX}
-                cy={PLATTER_CY}
-                r={RECORD_R * pct}
-                fill="none"
-                stroke="rgba(0,0,0,0.28)"
-                strokeWidth="0.4"
-              />
-            ),
-          )}
-
-          {/* Groove shimmer overlay */}
-          <circle
-            cx={PLATTER_CX}
-            cy={PLATTER_CY}
-            r={RECORD_R}
-            fill={`url(#${id('groove-shimmer')})`}
-          />
-
-          {/* Record label — thumbnail fills entire vinyl surface */}
-          {thumbnailUrl ? (
+          ) : (
             <>
+              {/* Record body */}
+              <g clipPath={`url(#${id('recordClip')})`}>
+                <circle
+                  cx={PLATTER_CX}
+                  cy={PLATTER_CY}
+                  r={RECORD_R * 1.4}
+                  fill={`url(#${id(thumbnailUrl ? 'vinylGradient' : 'marbleGradient')})`}
+                  filter={`url(#${id('marbleFx')})`}
+                />
+              </g>
+
+              {/* Record edge ring */}
               <circle
                 cx={PLATTER_CX}
                 cy={PLATTER_CY}
                 r={RECORD_R - 1}
-                fill={`url(#${id('thumbPat')})`}
-              />
-              {/* Center label — red for deck A, blue for deck B */}
-              <circle
-                cx={PLATTER_CX}
-                cy={PLATTER_CY}
-                r={LABEL_R}
-                fill={deckId === 'a' ? '#c41e3a' : '#1e40af'}
-              />
-              <circle
-                cx={PLATTER_CX}
-                cy={PLATTER_CY}
-                r={LABEL_R * 0.85}
                 fill="none"
-                stroke={deckId === 'a' ? '#a31830' : '#1a3690'}
-                strokeWidth={0.6}
+                stroke="rgba(0,0,0,0.3)"
+                strokeWidth="1"
               />
-              {/* Arc path for curved song title */}
-              <defs>
-                <path
-                  id={id('labelArc')}
-                  d={`M ${PLATTER_CX - LABEL_R * 0.68} ${PLATTER_CY} A ${LABEL_R * 0.68} ${LABEL_R * 0.68} 0 0 1 ${PLATTER_CX + LABEL_R * 0.68} ${PLATTER_CY}`}
-                  fill="none"
-                />
-              </defs>
-              <text
-                fill="#f5e6d0"
-                fontSize={LABEL_R * 0.22}
-                fontFamily="Georgia, serif"
-                letterSpacing="0.05em"
-              >
-                <textPath
-                  href={`#${id('labelArc')}`}
-                  startOffset="50%"
-                  textAnchor="middle"
-                  dy="1em"
-                >
-                  {(remixTitle.length > 15
-                    ? remixTitle.slice(0, 15) + '...'
-                    : remixTitle
-                  ).toUpperCase()}
-                </textPath>
-              </text>
-              {/* Center spindle hole */}
-              <circle cx={PLATTER_CX} cy={PLATTER_CY} r={LABEL_R * 0.1} fill="#1a1a1a" />
+
+              {/* Groove rings */}
+              {[0.94, 0.88, 0.82, 0.76, 0.70, 0.64, 0.58, 0.52, 0.46].map(
+                (pct) => (
+                  <circle
+                    key={pct}
+                    cx={PLATTER_CX}
+                    cy={PLATTER_CY}
+                    r={RECORD_R * pct}
+                    fill="none"
+                    stroke="rgba(0,0,0,0.28)"
+                    strokeWidth="0.4"
+                  />
+                ),
+              )}
+
+              {/* Groove shimmer overlay */}
+              <circle
+                cx={PLATTER_CX}
+                cy={PLATTER_CY}
+                r={RECORD_R}
+                fill={`url(#${id('groove-shimmer')})`}
+              />
             </>
-          ) : (
-            <RecordLabel
-              remixTitle={remixTitle}
-              cx={PLATTER_CX}
-              cy={PLATTER_CY}
-              radius={LABEL_R}
-              deckId={deckId === 'default' ? undefined : deckId as 'a' | 'b'}
-            />
+          )}
+
+          {/* Record label (non-mixed records only — mixed label is inside MixedVinylRecord) */}
+          {!hasMixedRecord && (
+            thumbnailUrl ? (
+              <>
+                <circle
+                  cx={PLATTER_CX}
+                  cy={PLATTER_CY}
+                  r={RECORD_R - 1}
+                  fill={`url(#${id('thumbPat')})`}
+                />
+                {/* Center label — red for deck A, blue for deck B */}
+                <circle
+                  cx={PLATTER_CX}
+                  cy={PLATTER_CY}
+                  r={LABEL_R}
+                  fill={deckId === 'a' ? '#c41e3a' : '#1e40af'}
+                />
+                <circle
+                  cx={PLATTER_CX}
+                  cy={PLATTER_CY}
+                  r={LABEL_R * 0.85}
+                  fill="none"
+                  stroke={deckId === 'a' ? '#a31830' : '#1a3690'}
+                  strokeWidth={0.6}
+                />
+                {/* Arc path for curved song title */}
+                <defs>
+                  <path
+                    id={id('labelArc')}
+                    d={`M ${PLATTER_CX - LABEL_R * 0.68} ${PLATTER_CY} A ${LABEL_R * 0.68} ${LABEL_R * 0.68} 0 0 1 ${PLATTER_CX + LABEL_R * 0.68} ${PLATTER_CY}`}
+                    fill="none"
+                  />
+                </defs>
+                <text
+                  fill="#f5e6d0"
+                  fontSize={LABEL_R * 0.22}
+                  fontFamily="Georgia, serif"
+                  letterSpacing="0.05em"
+                >
+                  <textPath
+                    href={`#${id('labelArc')}`}
+                    startOffset="50%"
+                    textAnchor="middle"
+                    dy="1em"
+                  >
+                    {(remixTitle.length > 15
+                      ? remixTitle.slice(0, 15) + '...'
+                      : remixTitle
+                    ).toUpperCase()}
+                  </textPath>
+                </text>
+                {/* Center spindle hole */}
+                <circle cx={PLATTER_CX} cy={PLATTER_CY} r={LABEL_R * 0.1} fill="#1a1a1a" />
+              </>
+            ) : (
+              <RecordLabel
+                remixTitle={remixTitle}
+                cx={PLATTER_CX}
+                cy={PLATTER_CY}
+                radius={LABEL_R}
+                deckId={deckId === 'default' ? undefined : deckId as 'a' | 'b'}
+              />
+            )
           )}
         </g>
       )}

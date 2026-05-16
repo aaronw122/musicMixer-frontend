@@ -246,7 +246,7 @@ body {
     inset 0 2px 6px rgba(0,0,0,0.55),
     inset 0 -2px 0 rgba(0,0,0,0.5),
     0 30px 50px rgba(0,0,0,0.6);
-  transform: rotateX(-40deg);
+  transform: rotateX(-50deg);
   transform-origin: 50% 0%;
   transform-style: preserve-3d;
 }
@@ -466,7 +466,7 @@ body {
   transform: translateY(-4px);
 }
 .picker-card.selected .picker-disc {
-  filter: drop-shadow(0 0 8px var(--success)) drop-shadow(4px 6px 12px rgba(0,0,0,0.5));
+  filter: drop-shadow(0 0 8px var(--amber)) drop-shadow(4px 6px 12px rgba(0,0,0,0.5));
 }
 .picker-card.disabled {
   opacity: 0.32;
@@ -517,8 +517,8 @@ body {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: var(--success);
-  color: #0d2d18;
+  background: var(--amber);
+  color: var(--amber-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -600,6 +600,113 @@ body {
 }
 .continue-btn:not(:disabled):hover {
   filter: brightness(1.08);
+}
+
+/* Add from YouTube — ghost tile */
+.add-yt-ghost {
+  opacity: 0.55;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+.add-yt-ghost:hover {
+  opacity: 0.85;
+}
+.add-yt-disc {
+  filter: none !important;
+}
+.add-yt-label {
+  color: rgba(245, 176, 66, 0.55) !important;
+  font-weight: 500 !important;
+}
+
+/* Add from YouTube — inline form */
+.add-yt-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  border-top: 1px solid rgba(245, 176, 66, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.add-yt-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 9px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(245, 176, 66, 0.25);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fdf3df;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+.add-yt-input::placeholder {
+  color: rgba(253, 230, 138, 0.4);
+}
+.add-yt-input:focus {
+  border-color: rgba(245, 176, 66, 0.5);
+}
+.add-yt-input:disabled {
+  opacity: 0.5;
+}
+.add-yt-actions {
+  display: flex;
+  gap: 8px;
+}
+.add-yt-cancel {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(253, 230, 138, 0.2);
+  background: transparent;
+  color: rgba(253, 230, 138, 0.7);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+.add-yt-cancel:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.add-yt-cancel:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.add-yt-done {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  background: linear-gradient(180deg, var(--amber) 0%, var(--amber-mid) 60%, var(--amber-deep) 100%);
+  color: var(--amber-bg);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 240, 200, 0.6), inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  transition: filter 150ms ease;
+}
+.add-yt-done:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+.add-yt-done:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.add-yt-error {
+  width: 100%;
+  margin: 0;
+  font-size: 12px;
+  color: #f87171;
+}
+
+/* Fade-in for newly added records */
+@keyframes record-fade-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+.picker-card.fade-in {
+  animation: record-fade-in 400ms cubic-bezier(0.2, 0.7, 0.2, 1.1) forwards;
 }
 
 /* ═══════════════════════════════════════════
@@ -742,12 +849,34 @@ body {
   }
   .stage {
     max-width: min(var(--board-max-width), calc((100vh - 24px) * 1.33));
+    perspective: 900px;
+  }
+  .cabinet {
+    transform: rotateX(-45deg);
+  }
+  .deck-row {
+    grid-template-columns: 1fr 140px 1fr;
+    gap: 12px;
+  }
+  .mixer-wrap {
+    max-width: 140px;
   }
 }
 
 @media (max-height: 480px) {
   .stage {
     max-width: min(var(--board-max-width), calc((100vh - 16px) * 1.3));
+    perspective: 700px;
+  }
+  .cabinet {
+    transform: rotateX(-45deg);
+  }
+  .deck-row {
+    grid-template-columns: 1fr 110px 1fr;
+    gap: 10px;
+  }
+  .mixer-wrap {
+    max-width: 110px;
   }
 }
 

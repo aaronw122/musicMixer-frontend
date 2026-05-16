@@ -8,7 +8,7 @@ import { MixButton } from './MixButton';
 import { RecordShelf } from './RecordShelf';
 import { SongPickerModal } from './SongPickerModal';
 import { createRemix, submitYouTubeRemix } from '../api/client';
-import type { CreateRemixError, ShelfRecord, SongInput } from '../types';
+import type { AppState, CreateRemixError, ShelfRecord, SongInput } from '../types';
 
 function formatError(error: CreateRemixError): string {
   switch (error.type) {
@@ -43,6 +43,9 @@ export function RemixSession() {
 
   const [modalOpen, setModalOpen] = useState(false);
 
+  // Derive session ID only when actively processing (used in effect + dep array)
+  const activeSessionId = state.phase === 'processing' ? state.sessionId : null;
+
   // Navigate to remix page when processing starts
   useEffect(() => {
     if (state.phase === 'processing') {
@@ -51,7 +54,7 @@ export function RemixSession() {
         s.type === 'youtube'
           ? { type: 'youtube' as const, url: s.url, thumbnailUrl: s.thumbnailUrl }
           : { type: 'file' as const };
-      navigate(`/remix/${state.sessionId}`, {
+      navigate(`/remix/${activeSessionId}`, {
         state: {
           creator: true,
           songA: toSongState(state.songA),
@@ -59,7 +62,7 @@ export function RemixSession() {
         },
       });
     }
-  }, [state.phase, state.phase === 'processing' ? state.sessionId : null, navigate]);
+  }, [state.phase, activeSessionId, navigate]);
 
   // Handle file upload submission
   const handleUpload = useCallback(async () => {
@@ -152,6 +155,118 @@ export function RemixSession() {
   const deckB = <InputDeck deckId="b" song={songB} />;
   const cabinet = <RecordShelf />;
 
+  // --- Phase render functions ---
+
+  function renderIdle() {
+    return (
+      <DJBoard
+        deckA={deckA}
+        deckB={deckB}
+        mixControls={
+          <MixButton
+            canMix={bothLoaded}
+            submitting={false}
+            onClick={handleSubmit}
+          />
+        }
+        cabinetContent={cabinet}
+        cabinetOverlay={
+          <button
+            className="cta"
+            onClick={() => setModalOpen(true)}
+          >
+            {ctaLabel}
+          </button>
+        }
+      />
+    );
+  }
+
+  function renderUploading(s: Extract<AppState, { phase: 'uploading' }>) {
+    return (
+      <>
+        <DJBoard
+          deckA={deckA}
+          deckB={deckB}
+          mixControls={
+            <MixButton
+              canMix={false}
+              submitting={true}
+              onClick={() => {}}
+            />
+          }
+          cabinetContent={cabinet}
+        />
+        {/* Upload progress below the stage */}
+        <div className="mx-auto mt-4 w-full max-w-md space-y-1">
+          <div className="h-2 rounded-full bg-black/30 overflow-hidden border border-amber-900/30">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-300"
+              style={{ width: `${s.uploadProgress}%` }}
+            />
+          </div>
+          <p className="text-xs text-amber-200/40 text-center">
+            Uploading... {s.uploadProgress}%
+          </p>
+        </div>
+      </>
+    );
+  }
+
+  function renderSubmitting() {
+    return (
+      <>
+        <DJBoard
+          deckA={deckA}
+          deckB={deckB}
+          mixControls={
+            <MixButton
+              canMix={false}
+              submitting={true}
+              onClick={() => {}}
+            />
+          }
+          cabinetContent={cabinet}
+        />
+        <p className="mt-4 text-sm text-amber-200/40 text-center">
+          Submitting your songs...
+        </p>
+      </>
+    );
+  }
+
+  function renderError(s: Extract<AppState, { phase: 'error' }>) {
+    return (
+      <DJBoard
+        centerContent={
+          <div className="w-full max-w-md mx-auto text-center space-y-4 py-4">
+            <div className="rounded-lg border border-amber-700/50 bg-amber-950/25 p-6">
+              <p className="text-amber-200/80">{s.message}</p>
+            </div>
+            <button
+              className="rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 px-6 py-3 text-sm font-medium text-amber-50 hover:from-amber-500 hover:to-amber-700 transition-colors min-h-[44px]"
+              onClick={() => dispatch({ type: 'RETRY' })}
+            >
+              Try Again
+            </button>
+          </div>
+        }
+        cabinetContent={cabinet}
+      />
+    );
+  }
+
+  function renderPhase() {
+    switch (state.phase) {
+      case 'idle':        return renderIdle();
+      case 'uploading':   return renderUploading(state);
+      case 'submitting':  return renderSubmitting();
+      case 'processing':
+      case 'ready':       return null;
+      case 'error':       return renderError(state);
+    }
+  }
+
   return (
     <>
       {/* App header */}
@@ -182,108 +297,7 @@ export function RemixSession() {
         onConfirm={handleModalConfirm}
       />
 
-      {(() => {
-        switch (state.phase) {
-          case 'idle':
-            return (
-              <DJBoard
-                deckA={deckA}
-                deckB={deckB}
-                mixControls={
-                  <MixButton
-                    canMix={bothLoaded}
-                    submitting={false}
-                    onClick={handleSubmit}
-                  />
-                }
-                cabinetContent={cabinet}
-                cabinetOverlay={
-                  <button
-                    className="cta"
-                    onClick={() => setModalOpen(true)}
-                  >
-                    {ctaLabel}
-                  </button>
-                }
-              />
-            );
-
-          case 'uploading':
-            return (
-              <>
-                <DJBoard
-                  deckA={deckA}
-                  deckB={deckB}
-                  mixControls={
-                    <MixButton
-                      canMix={false}
-                      submitting={true}
-                      onClick={() => {}}
-                    />
-                  }
-                  cabinetContent={cabinet}
-                />
-                {/* Upload progress below the stage */}
-                <div className="mx-auto mt-4 w-full max-w-md space-y-1">
-                  <div className="h-2 rounded-full bg-black/30 overflow-hidden border border-amber-900/30">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-300"
-                      style={{ width: `${state.uploadProgress}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-amber-200/40 text-center">
-                    Uploading... {state.uploadProgress}%
-                  </p>
-                </div>
-              </>
-            );
-
-          case 'submitting':
-            return (
-              <>
-                <DJBoard
-                  deckA={deckA}
-                  deckB={deckB}
-                  mixControls={
-                    <MixButton
-                      canMix={false}
-                      submitting={true}
-                      onClick={() => {}}
-                    />
-                  }
-                  cabinetContent={cabinet}
-                />
-                <p className="mt-4 text-sm text-amber-200/40 text-center">
-                  Submitting your songs...
-                </p>
-              </>
-            );
-
-          case 'processing':
-          case 'ready':
-            return null;
-
-          case 'error':
-            return (
-              <DJBoard
-                centerContent={
-                  <div className="w-full max-w-md mx-auto text-center space-y-4 py-4">
-                    <div className="rounded-lg border border-amber-700/50 bg-amber-950/25 p-6">
-                      <p className="text-amber-200/80">{state.message}</p>
-                    </div>
-                    <button
-                      className="rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 px-6 py-3 text-sm font-medium text-amber-50 hover:from-amber-500 hover:to-amber-700 transition-colors min-h-[44px]"
-                      onClick={() => dispatch({ type: 'RETRY' })}
-                    >
-                      Try Again
-                    </button>
-                  </div>
-                }
-                cabinetContent={cabinet}
-              />
-            );
-        }
-      })()}
+      {renderPhase()}
     </>
   );
 }
