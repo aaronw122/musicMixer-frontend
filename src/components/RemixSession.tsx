@@ -46,6 +46,7 @@ export function RemixSession() {
   // Navigate to remix page when processing starts
   useEffect(() => {
     if (state.phase === 'processing') {
+      // Pass minimal serializable song data for processing visuals.
       const toSongState = (s: SongInput) =>
         s.type === 'youtube'
           ? { type: 'youtube' as const, url: s.url, thumbnailUrl: s.thumbnailUrl }
