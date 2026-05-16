@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 
 type Props = {
   canMix: boolean;
@@ -59,10 +59,18 @@ function Knob({
 export function MixButton({ canMix, submitting, onClick }: Props) {
   const isReady = canMix && !submitting;
   const containerRef = useRef<HTMLDivElement>(null);
+  const [mixR, setMixR] = useState(57);
 
   const mixCx = 130;
   const mixCy = 286;
-  const mixR = 65;
+
+  // Read --mix-btn-r CSS custom property (mobile override)
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const val = getComputedStyle(el).getPropertyValue('--mix-btn-r').trim();
+    if (val) setMixR(Number(val));
+  }, []);
 
   // Document-level click listener — bypasses 3D transform hit-testing bugs in Chromium.
   // getBoundingClientRect gives projected screen coords, so we can check if the click
@@ -112,7 +120,7 @@ export function MixButton({ canMix, submitting, onClick }: Props) {
   }
 
   return (
-    <div ref={containerRef} className="relative w-full h-full">
+    <div ref={containerRef} className="mix-panel relative w-full h-full">
     <svg
       viewBox="0 0 260 440"
       className="w-full h-full"
@@ -136,24 +144,41 @@ export function MixButton({ canMix, submitting, onClick }: Props) {
           <stop offset="100%" stopColor="rgba(0,0,0,0.15)" />
         </linearGradient>
 
-        {/* MIX button cap gradient */}
+        {/* Chrome rim gradient */}
+        <linearGradient id="mixer-chrome-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#f0f0f0" />
+          <stop offset="15%" stopColor="#e8e8ea" />
+          <stop offset="40%" stopColor="#c0c2c6" />
+          <stop offset="60%" stopColor="#a8aaae" />
+          <stop offset="80%" stopColor="#c8cacf" />
+          <stop offset="100%" stopColor="#909296" />
+        </linearGradient>
+
+        {/* Red dome cap gradient — 3D dome shading */}
         <radialGradient
           id="mixer-cap-grad"
-          cx="35%"
-          cy="28%"
-          r="60%"
+          cx="40%"
+          cy="32%"
+          r="58%"
         >
-          <stop offset="0%" stopColor="#ffefc8" />
-          <stop offset="40%" stopColor="#f5b042" />
-          <stop offset="75%" stopColor="#a04a08" />
-          <stop offset="100%" stopColor="#3a1a02" />
+          <stop offset="0%" stopColor="#ff4a4a" />
+          <stop offset="30%" stopColor="#e22828" />
+          <stop offset="65%" stopColor="#b81c1c" />
+          <stop offset="85%" stopColor="#8a1010" />
+          <stop offset="100%" stopColor="#5a0808" />
         </radialGradient>
 
-        {/* Glass highlight gradient */}
-        <radialGradient id="mixer-glass-grad" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="rgba(255,255,255,0.35)" />
+        {/* Dome highlight — white specular */}
+        <radialGradient id="mixer-dome-highlight" cx="38%" cy="28%" r="30%">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.55)" />
+          <stop offset="60%" stopColor="rgba(255,255,255,0.12)" />
           <stop offset="100%" stopColor="rgba(255,255,255,0)" />
         </radialGradient>
+
+        {/* Bottom shadow blur */}
+        <filter id="mixer-btn-shadow-blur" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="6" />
+        </filter>
 
         {/* Crossfader cap gradient */}
         <linearGradient id="mixer-cf-cap-grad" x1="0" y1="0" x2="0" y2="1">
@@ -309,65 +334,72 @@ export function MixButton({ canMix, submitting, onClick }: Props) {
         opacity={submitting ? undefined : isReady ? 1 : 0.4}
       >
 
-        {/* a) 64 knurled tick marks */}
-        {ticks.map((t, i) => (
-          <line
-            key={i}
-            x1={t.x1}
-            y1={t.y1}
-            x2={t.x2}
-            y2={t.y2}
-            stroke="rgba(60,40,10,0.5)"
-            strokeWidth={1}
-          />
-        ))}
-
-        {/* b) Cap fill */}
-        <circle cx={mixCx} cy={mixCy} r={mixR} fill="url(#mixer-cap-grad)" />
-
-        {/* c) Glass highlight */}
+        {/* a) Shadow beneath button */}
         <ellipse
-          cx={mixCx - 12}
-          cy={mixCy - 16}
-          rx={28}
-          ry={18}
-          fill="url(#mixer-glass-grad)"
-          pointerEvents="none"
+          cx={mixCx}
+          cy={mixCy + 14}
+          rx={mixR - 2}
+          ry={22}
+          fill="rgba(0,0,0,0.5)"
+          filter="url(#mixer-btn-shadow-blur)"
         />
 
-        {/* d) Inner engraved ring */}
+        {/* b) Chrome rim */}
+        <circle cx={mixCx} cy={mixCy} r={mixR + 4} fill="url(#mixer-chrome-grad)" />
+        <circle cx={mixCx} cy={mixCy} r={mixR + 4} fill="none" stroke="rgba(0,0,0,0.25)" strokeWidth={0.8} />
+        {/* Inner rim edge */}
+        <circle cx={mixCx} cy={mixCy} r={mixR + 0.5} fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth={0.8} />
+
+        {/* c) Red dome cap */}
+        <circle cx={mixCx} cy={mixCy} r={mixR} fill="url(#mixer-cap-grad)" />
+
+        {/* d) Dome specular highlight */}
+        <circle cx={mixCx} cy={mixCy} r={mixR} fill="url(#mixer-dome-highlight)" />
+
+        {/* e) Subtle edge shadow on dome */}
         <circle
           cx={mixCx}
           cy={mixCy}
-          r={53}
+          r={mixR - 1}
           fill="none"
-          stroke="rgba(60,30,5,0.3)"
-          strokeWidth={0.8}
+          stroke="rgba(0,0,0,0.15)"
+          strokeWidth={2}
         />
 
-        {/* e) "MIX" text */}
+        {/* f) "MIX" text — white with subtle shadow */}
         <text
           x={mixCx}
-          y={mixCy + 12}
+          y={mixCy + 2}
           fontSize={34}
           fontFamily={`"Helvetica Neue", "Arial Black", Helvetica, Arial, sans-serif`}
           fontWeight={900}
-          letterSpacing={4}
-          fill="#3a1a02"
-          stroke="rgba(255,235,180,0.5)"
-          strokeWidth={0.6}
-          paintOrder="stroke"
+          letterSpacing={6}
+          fill="rgba(0,0,0,0.2)"
           textAnchor="middle"
+          dominantBaseline="central"
+        >
+          {submitting ? "..." : "MIX"}
+        </text>
+        <text
+          x={mixCx}
+          y={mixCy}
+          fontSize={34}
+          fontFamily={`"Helvetica Neue", "Arial Black", Helvetica, Arial, sans-serif`}
+          fontWeight={900}
+          letterSpacing={6}
+          fill="white"
+          textAnchor="middle"
+          dominantBaseline="central"
         >
           {submitting ? "..." : "MIX"}
         </text>
 
         {/* Submitting pulse animation */}
         {submitting && (
-          <circle cx={mixCx} cy={mixCy} r={mixR} fill="none">
+          <circle cx={mixCx} cy={mixCy} r={mixR} fill="rgba(255,255,255,0.08)">
             <animate
               attributeName="opacity"
-              values="1;0.6;1"
+              values="1;0.3;1"
               dur="1.2s"
               repeatCount="indefinite"
             />

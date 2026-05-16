@@ -73,7 +73,7 @@ export function InputDeck({ deckId, song }: Props) {
         : '';
 
   // Tonearm: 9° parked (empty), 24° on record (loaded)
-  const tonearmAngle = isEmpty ? 9 : 24;
+  const tonearmAngle = isEmpty ? 7 : -12;
 
   return (
     <div

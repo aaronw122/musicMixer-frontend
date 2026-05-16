@@ -38,8 +38,8 @@ const LABEL_R = 34;
 const FELT_R = PLATTER_R - 10.5;
 
 // Tonearm pivot position (top-right area)
-const PIVOT_X = 340;
-const PIVOT_Y = 44;
+const PIVOT_X = 285;
+const PIVOT_Y = 80;
 const ARM_SCALE = 1.0;
 
 export function TurntableScene({
@@ -109,12 +109,6 @@ export function TurntableScene({
           <stop offset="100%" stopColor="#c0c1c4" />
         </linearGradient>
 
-        {/* Button metallic gradient for 33/45/START */}
-        <linearGradient id={id('buttonGrad')} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#dcdde0" />
-          <stop offset="50%" stopColor="#b0b1b4" />
-          <stop offset="100%" stopColor="#c8c9cc" />
-        </linearGradient>
 
         {/* Platter — dark rubber mat with subtle gradient */}
         <radialGradient id={id('platterGradient')} cx="45%" cy="42%">
@@ -281,47 +275,6 @@ export function TurntableScene({
         strokeWidth="0.6"
       />
 
-      {/* === 33 / 45 / START buttons (top-right) === */}
-      {(() => {
-        const btnY = PIVOT_Y - 4;
-        const btnH = 12;
-        const gap = 6;
-        const startW = 30;
-        const smallW = 22;
-        // Arrange left of the tonearm rest area
-        const totalW = 2 * smallW + startW + 2 * gap;
-        const baseX = PIVOT_X - 20 - totalW;
-        const buttons = [
-          { label: '33', w: smallW, x: baseX },
-          { label: '45', w: smallW, x: baseX + smallW + gap },
-          { label: 'START', w: startW, x: baseX + 2 * (smallW + gap) },
-        ];
-        return buttons.map((btn) => (
-          <g key={btn.label}>
-            <rect
-              x={btn.x}
-              y={btnY}
-              width={btn.w}
-              height={btnH}
-              rx={2}
-              fill={`url(#${id('buttonGrad')})`}
-              stroke="rgba(0,0,0,0.15)"
-              strokeWidth="0.5"
-            />
-            <text
-              x={btn.x + btn.w / 2}
-              y={btnY + btnH / 2 + 2}
-              textAnchor="middle"
-              fontSize="6"
-              fontFamily="Arial, sans-serif"
-              letterSpacing="1px"
-              fill="#444"
-            >
-              {btn.label}
-            </text>
-          </g>
-        ));
-      })()}
 
       {/* === Platter === */}
       {/* Elevation shadow — lifts platter off the plinth */}
