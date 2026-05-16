@@ -17,10 +17,10 @@ type Props = {
   };
 };
 
-// Tonearm angles
+// Tonearm angles (negative = over the record, positive = toward rest cradle)
 const PARKED_ANGLE = 7;
-const OUTER_GROOVE_ANGLE = 25;
-const INNER_GROOVE_ANGLE = 32;
+const OUTER_GROOVE_ANGLE = -12;
+const INNER_GROOVE_ANGLE = -19;
 const ANGLE_RANGE = INNER_GROOVE_ANGLE - OUTER_GROOVE_ANGLE;
 
 // Timing

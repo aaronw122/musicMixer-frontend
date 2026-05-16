@@ -381,7 +381,7 @@ export function MixProcess({ songA, songB, progress, sessionId, onCancel, stageO
       <div className="mix-target-turntable" aria-hidden="true">
         <TurntableScene
           remixTitle="Your Remix"
-          tonearmAngle={0}
+          tonearmAngle={7}
           isSpinning={false}
           deckId={`mix-drop-${sessionId}`}
           mixedRecord={{
