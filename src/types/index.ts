@@ -114,6 +114,8 @@ export type PublicRemixResponse = {
   warnings: string[];
   usedFallback: boolean;
   expires_at: string;
+  thumbnail_url_a?: string | null;
+  thumbnail_url_b?: string | null;
 };
 
 export type ListenSubstate = 'loading' | 'ready' | 'processing' | 'invalid' | 'unavailable' | 'expired';
@@ -127,6 +129,8 @@ export type ListenState =
       warnings: string[];
       usedFallback: boolean;
       expiresAt: string;
+      thumbnailUrlA?: string | null;
+      thumbnailUrlB?: string | null;
     }
   | { substate: 'processing' }
   | { substate: 'invalid' }
