@@ -20,21 +20,21 @@ export type TurntableSceneProps = {
 };
 
 // SVG viewBox dimensions
-const VB_W = 360;
+const VB_W = 380;
 const VB_H = 320;
 
 // Platter center & sizes
 const PLATTER_CX = 160;
-const PLATTER_CY = 160;
-const PLATTER_R = 130;
-const RECORD_R = 120;
-const LABEL_R = 35;
+const PLATTER_CY = 168;
+const PLATTER_R = 124;
+const RECORD_R = 116;
+const LABEL_R = 34;
 const FELT_R = PLATTER_R - 10.5;
 
 // Tonearm pivot position (top-right area)
-const PIVOT_X = 310;
-const PIVOT_Y = 45;
-const ARM_SCALE = 0.8;
+const PIVOT_X = 340;
+const PIVOT_Y = 44;
+const ARM_SCALE = 1.0;
 
 export function TurntableScene({
   remixTitle,
@@ -49,12 +49,29 @@ export function TurntableScene({
   // Helper to namespace SVG IDs per deck instance
   const id = (base: string) => `${base}-${deckId}`;
 
-  // When empty, force tonearm parked and no spinning
-  const effectiveTonearmAngle = isEmpty ? 0 : tonearmAngle;
+  // When empty, force tonearm to parked position (7°) and no spinning
+  const effectiveTonearmAngle = isEmpty ? 7 : tonearmAngle;
   const effectiveIsSpinning = isEmpty ? false : isSpinning;
 
   // Determine vinyl fill color: use vinylColor if provided, else default dark
   const vinylFillColor = vinylColor ?? '#1a1a2e';
+
+  // Generate brushed-line texture lines for the plinth
+  const brushedLines: React.ReactElement[] = [];
+  for (let i = 0; i < 60; i++) {
+    const y = 12 + (i * (VB_H - 24)) / 60;
+    brushedLines.push(
+      <line
+        key={`brush-${i}`}
+        x1={12}
+        y1={y}
+        x2={VB_W - 12}
+        y2={y}
+        stroke="rgba(255,255,255,0.08)"
+        strokeWidth="0.5"
+      />,
+    );
+  }
 
   return (
     <svg
@@ -64,17 +81,31 @@ export function TurntableScene({
       role="img"
     >
       <defs>
-        {/* Plinth gradient — near-black DJ chassis */}
+        {/* Plinth gradient — silver Technics-style chassis */}
         <linearGradient id={id('plinthGradient')} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#2a2a2a" />
-          <stop offset="50%" stopColor="#1a1a1a" />
-          <stop offset="100%" stopColor="#111" />
+          <stop offset="0%" stopColor="#eeeff1" />
+          <stop offset="35%" stopColor="#cdcfd3" />
+          <stop offset="100%" stopColor="#8d8f93" />
         </linearGradient>
-        {/* Plinth top highlight */}
+        {/* Plinth top highlight — lighter on top, slight darkening at bottom */}
         <linearGradient id={id('plinthHighlight')} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="white" stopOpacity="0.06" />
-          <stop offset="30%" stopColor="white" stopOpacity="0" />
-          <stop offset="100%" stopColor="black" stopOpacity="0.15" />
+          <stop offset="0%" stopColor="white" stopOpacity="0.18" />
+          <stop offset="40%" stopColor="white" stopOpacity="0.04" />
+          <stop offset="100%" stopColor="black" stopOpacity="0.08" />
+        </linearGradient>
+
+        {/* Pitch fader slider cap metallic gradient */}
+        <linearGradient id={id('pitchCapGrad')} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#d8d9dc" />
+          <stop offset="50%" stopColor="#a0a1a4" />
+          <stop offset="100%" stopColor="#c0c1c4" />
+        </linearGradient>
+
+        {/* Button metallic gradient for 33/45/START */}
+        <linearGradient id={id('buttonGrad')} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#dcdde0" />
+          <stop offset="50%" stopColor="#b0b1b4" />
+          <stop offset="100%" stopColor="#c8c9cc" />
         </linearGradient>
 
         {/* Platter — dark rubber mat with subtle gradient */}
@@ -191,47 +222,96 @@ export function TurntableScene({
         )}
       </defs>
 
-      {/* === Plinth (metal chassis) === */}
+      {/* === Plinth (silver metal chassis) === */}
       <rect
-        x="10"
-        y="10"
-        width={VB_W - 20}
-        height={VB_H - 20}
-        rx="4"
+        x="8"
+        y="14"
+        width={VB_W - 16}
+        height={VB_H - 22}
+        rx="10"
         fill={`url(#${id('plinthGradient')})`}
       />
+      {/* Brushed-line texture across the plinth */}
+      <g clipPath={`url(#${id('plinthClip')})`}>
+        <defs>
+          <clipPath id={id('plinthClip')}>
+            <rect x="8" y="14" width={VB_W - 16} height={VB_H - 22} rx="10" />
+          </clipPath>
+        </defs>
+        {brushedLines}
+      </g>
       {/* Top highlight overlay */}
       <rect
-        x="10"
-        y="10"
-        width={VB_W - 20}
-        height={VB_H - 20}
-        rx="4"
+        x="8"
+        y="14"
+        width={VB_W - 16}
+        height={VB_H - 22}
+        rx="10"
         fill={`url(#${id('plinthHighlight')})`}
       />
-      {/* Plinth border — subtle edge */}
+      {/* Plinth border — subtle edge (silver) */}
       <rect
-        x="10"
-        y="10"
-        width={VB_W - 20}
-        height={VB_H - 20}
-        rx="4"
+        x="8"
+        y="14"
+        width={VB_W - 16}
+        height={VB_H - 22}
+        rx="10"
         fill="none"
-        stroke="#444"
-        strokeWidth={0.8}
-        opacity={0.6}
+        stroke="#5e6064"
+        strokeWidth={0.7}
       />
       {/* Inner edge bevel */}
       <rect
-        x="12"
-        y="12"
-        width={VB_W - 24}
-        height={VB_H - 24}
-        rx="5"
+        x="10"
+        y="16"
+        width={VB_W - 20}
+        height={VB_H - 26}
+        rx="10"
         fill="none"
-        stroke="rgba(255,255,255,0.06)"
+        stroke="rgba(255,255,255,0.15)"
         strokeWidth="0.6"
       />
+
+      {/* === 33 / 45 / START buttons (top-right) === */}
+      {(() => {
+        const btnY = 22;
+        const btnH = 12;
+        const gap = 4;
+        const startW = 30;
+        const smallW = 22;
+        // Arrange right-to-left from the tonearm area
+        const baseX = PIVOT_X - 48;
+        const buttons = [
+          { label: '33', w: smallW, x: baseX },
+          { label: '45', w: smallW, x: baseX + smallW + gap },
+          { label: 'START', w: startW, x: baseX + 2 * (smallW + gap) },
+        ];
+        return buttons.map((btn) => (
+          <g key={btn.label}>
+            <rect
+              x={btn.x}
+              y={btnY}
+              width={btn.w}
+              height={btnH}
+              rx={2}
+              fill={`url(#${id('buttonGrad')})`}
+              stroke="rgba(0,0,0,0.15)"
+              strokeWidth="0.5"
+            />
+            <text
+              x={btn.x + btn.w / 2}
+              y={btnY + btnH / 2 + 2}
+              textAnchor="middle"
+              fontSize="6"
+              fontFamily="Arial, sans-serif"
+              letterSpacing="1px"
+              fill="#444"
+            >
+              {btn.label}
+            </text>
+          </g>
+        ));
+      })()}
 
       {/* === Platter === */}
       {/* Elevation shadow — lifts platter off the plinth */}
@@ -252,14 +332,6 @@ export function TurntableScene({
         fill="none"
         stroke={`url(#${id('chromeRim')})`}
         strokeWidth="14"
-      />
-      <circle
-        cx={PLATTER_CX}
-        cy={PLATTER_CY}
-        r={PLATTER_R - 0.5}
-        fill="none"
-        stroke="rgba(220,220,220,0.7)"
-        strokeWidth="1.35"
       />
       {/* Punched strobe-dot rows in the chrome rim */}
       {[
@@ -288,14 +360,6 @@ export function TurntableScene({
         r={FELT_R}
         fill={`url(#${id('platterGradient')})`}
         filter={`url(#${id('feltTexture')})`}
-      />
-      <circle
-        cx={PLATTER_CX}
-        cy={PLATTER_CY}
-        r={FELT_R}
-        fill="none"
-        stroke="rgba(220,220,220,0.7)"
-        strokeWidth="1.35"
       />
       {/* === Vinyl Record (spinning group) — only when not empty === */}
       {!isEmpty && (
@@ -332,7 +396,7 @@ export function TurntableScene({
           />
 
           {/* Groove rings — subtle dark lines over the vinyl */}
-          {[0.92, 0.87, 0.82, 0.77, 0.72, 0.67, 0.62, 0.57, 0.52, 0.47, 0.42, 0.38].map(
+          {[0.94, 0.88, 0.82, 0.76, 0.70, 0.64, 0.58, 0.52, 0.46].map(
             (pct) => (
               <circle
                 key={pct}
@@ -340,7 +404,7 @@ export function TurntableScene({
                 cy={PLATTER_CY}
                 r={RECORD_R * pct}
                 fill="none"
-                stroke="rgba(0,0,0,0.15)"
+                stroke="rgba(0,0,0,0.28)"
                 strokeWidth="0.4"
               />
             ),
@@ -427,6 +491,58 @@ export function TurntableScene({
         </g>
       )}
 
+      {/* === Pitch Fader (right side) — rendered before tonearm so arm is on top === */}
+      {(() => {
+        const faderX = VB_W - 50;
+        const faderY = PLATTER_CY - 60;
+        const slotW = 12;
+        const slotH = 120;
+        const capW = 16;
+        const capH = 10;
+        const tickCount = 6;
+        return (
+          <g>
+            {/* Fader slot */}
+            <rect
+              x={faderX - slotW / 2}
+              y={faderY}
+              width={slotW}
+              height={slotH}
+              rx={slotW / 2}
+              fill="#2a2b2d"
+              stroke="rgba(0,0,0,0.3)"
+              strokeWidth="0.5"
+            />
+            {/* Tick marks */}
+            {Array.from({ length: tickCount }).map((_, i) => {
+              const ty = faderY + 10 + (i * (slotH - 20)) / (tickCount - 1);
+              return (
+                <line
+                  key={`tick-${i}`}
+                  x1={faderX - slotW / 2 - 3}
+                  y1={ty}
+                  x2={faderX - slotW / 2}
+                  y2={ty}
+                  stroke="rgba(255,255,255,0.2)"
+                  strokeWidth="0.6"
+                />
+              );
+            })}
+            {/* Slider cap — centered vertically */}
+            <rect
+              x={faderX - capW / 2}
+              y={faderY + slotH / 2 - capH / 2}
+              width={capW}
+              height={capH}
+              rx={2}
+              fill={`url(#${id('pitchCapGrad')})`}
+              stroke="rgba(0,0,0,0.2)"
+              strokeWidth="0.5"
+            />
+          </g>
+        );
+      })()}
+
       {/* === Tonearm rest cradle === */}
       <rect
         x={PIVOT_X - 12}
@@ -438,7 +554,6 @@ export function TurntableScene({
         stroke="#555"
         strokeWidth="0.5"
       />
-      {/* Cradle highlight */}
       <rect
         x={PIVOT_X - 10}
         y={PIVOT_Y + 15}
@@ -448,7 +563,7 @@ export function TurntableScene({
         fill="rgba(255,255,255,0.08)"
       />
 
-      {/* === Tonearm === */}
+      {/* === Tonearm — rendered last so it's always on top === */}
       <Tonearm
         pivotX={PIVOT_X}
         pivotY={PIVOT_Y}
@@ -457,9 +572,9 @@ export function TurntableScene({
         deckId={deckId}
       />
 
-      {/* === Power indicator LED === */}
-      <circle cx={VB_W - 30} cy={VB_H - 28} r="3" fill="#2a5a2a" />
-      <circle cx={VB_W - 30} cy={VB_H - 28} r="2" fill="#4a4" opacity="0.8" />
+      {/* === Power indicator LED (subtler on silver) === */}
+      <circle cx={VB_W - 26} cy={VB_H - 22} r="3" fill="#2f5a3a" />
+      <circle cx={VB_W - 26} cy={VB_H - 22} r="2" fill="#4ec46e" />
     </svg>
   );
 }

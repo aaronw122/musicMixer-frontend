@@ -161,7 +161,7 @@ export function MergeTransition({
       </div>
 
       {/* Progress info — reuse ProgressDisplay but override the merge animation */}
-      <div className="w-full max-w-md mx-auto merge-progress-area">
+      <div className="w-full max-w-none mx-auto merge-progress-area">
         <ProgressDisplayInline
           progress={effectiveProgress}
           sessionId={sessionId}
@@ -347,27 +347,29 @@ function ProgressDisplayInline({
         </div>
       </div>
 
-      {smsState === 'confirmed' ? (
-        <p className="text-sm text-amber-200/60">
-          <span className="text-green-400 mr-1">&#10003;</span>
-          We'll text you
-        </p>
-      ) : (
-        <button
-          className="text-sm text-amber-200/50 hover:text-white transition-colors"
-          onClick={() => setSmsState('dialog-open')}
-        >
-          <SmsIcon />
-          Text me when it's ready
-        </button>
-      )}
+      <div className="flex flex-col items-center gap-2">
+        {smsState === 'confirmed' ? (
+          <p className="text-sm text-amber-200/60">
+            <span className="text-green-400 mr-1">&#10003;</span>
+            We'll text you
+          </p>
+        ) : (
+          <button
+            className="text-sm text-amber-200/50 hover:text-white transition-colors"
+            onClick={() => setSmsState('dialog-open')}
+          >
+            <SmsIcon />
+            Text me when it's ready
+          </button>
+        )}
 
-      <button
-        className="text-sm text-amber-200/30 hover:text-amber-200/60 underline"
-        onClick={onCancel}
-      >
-        Cancel
-      </button>
+        <button
+          className="text-sm text-amber-200/30 hover:text-amber-200/60 underline"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+      </div>
 
       {(smsState === 'dialog-open' || smsState === 'sending' || smsState === 'error') && (
         <SmsDialog

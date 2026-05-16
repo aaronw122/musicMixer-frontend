@@ -1,12 +1,11 @@
 import { useReducer, useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { DJBoard } from './DJBoard';
-import { MergeTransition } from './MergeTransition';
+import { ProgressDisplay } from './ProgressDisplay';
 import { RemixPlayer } from './RemixPlayer';
 import { ShareButton } from './ShareButton';
 import { useRemixProgress } from '../hooks/useRemixProgress';
 import { getPublicRemix } from '../api/client';
-import type { AppAction, ProgressEvent, SongInput } from '../types';
+import type { AppAction, ProgressEvent } from '../types';
 
 type PagePhase =
   | { kind: 'loading' }
@@ -51,7 +50,7 @@ export function RemixPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const routeState = location.state as { creator?: boolean; songA?: SongInput; songB?: SongInput } | null;
+  const routeState = location.state as { creator?: boolean } | null;
   const isCreator = !!routeState?.creator;
 
   const [state, dispatch] = useReducer(pageReducer, undefined, (): PagePhase => {
@@ -135,19 +134,13 @@ export function RemixPage() {
 
     case 'processing':
       return (
-        <DJBoard
-          centerContent={
-            <div className="w-full max-w-2xl mx-auto py-4">
-              <MergeTransition
-                songA={(routeState?.songA ?? { type: 'file' }) as SongInput}
-                songB={(routeState?.songB ?? { type: 'file' }) as SongInput}
-                progress={state.progress}
-                sessionId={sessionId}
-                onCancel={goHome}
-              />
-            </div>
-          }
-        />
+        <div className="relative left-1/2 w-screen -translate-x-1/2 px-80 py-4">
+          <ProgressDisplay
+            progress={state.progress}
+            sessionId={sessionId}
+            onCancel={goHome}
+          />
+        </div>
       );
 
     case 'ready':

@@ -1,4 +1,4 @@
-import type { CreateRemixResponse, SessionStatus, CreateRemixError, PublicRemixResponse } from '../types';
+import type { CreateRemixResponse, SessionStatus, CreateRemixError, PublicRemixResponse, ShelfRecord } from '../types';
 
 const API_BASE = '/api';
 
@@ -148,6 +148,33 @@ export async function registerSmsNotification(
     throw new Error(body.detail || `SMS registration failed (${response.status})`);
   }
 
+  return response.json();
+}
+
+/**
+ * Fetch all shelf records for song selection.
+ */
+export async function fetchShelfRecords(): Promise<ShelfRecord[]> {
+  const response = await fetch(`${API_BASE}/shelf`);
+  if (!response.ok) {
+    throw new Error('Failed to load shelf records');
+  }
+  return response.json();
+}
+
+/**
+ * Add a new record to the shelf by YouTube URL.
+ */
+export async function addShelfRecord(youtubeUrl: string): Promise<ShelfRecord> {
+  const response = await fetch(`${API_BASE}/shelf`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ youtube_url: youtubeUrl }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({ detail: 'Failed to add record' }));
+    throw new Error(body.detail || 'Failed to add record');
+  }
   return response.json();
 }
 
