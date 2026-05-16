@@ -9,7 +9,10 @@ export type ProgressStep =
   | 'rendering'
   | 'complete'
   | 'error'
-  | 'keepalive';
+  | 'keepalive'
+  | 'queue_position'
+  | 'queue_estimate'
+  | 'processing_started';
 
 export type ProgressEvent = {
   step: ProgressStep;

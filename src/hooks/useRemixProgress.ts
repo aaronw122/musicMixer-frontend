@@ -9,6 +9,9 @@ const TIMEOUT_BY_STEP: Record<string, number> = {
   interpreting: 60_000,
   processing: 120_000,
   rendering: 120_000,
+  queue_position: 600_000, // 10 minutes — could be waiting a while
+  queue_estimate: 600_000,
+  processing_started: 120_000,
 };
 const DEFAULT_TIMEOUT = 120_000;
 

@@ -26,6 +26,9 @@ const STEP_LABELS: Record<string, string> = {
   processing: 'Mixing the records',
   rendering: 'Pressing the master',
   complete: 'Done',
+  queue_position: 'Waiting for an open slot...',
+  queue_estimate: 'Waiting for an open slot...',
+  processing_started: 'Your remix is starting now',
 };
 const FLOATING_NOTES = ['♪', '♫', '♬', '♩'];
 
@@ -302,6 +305,7 @@ export function MixProcess({ songA, songB, progress, sessionId, onCancel, stageO
   const thumbA = thumbnailFor(songA);
   const thumbB = thumbnailFor(songB);
   const pct = Math.max(0, Math.min(100, Math.round(progress.progress * 100)));
+  const isQueued = progress.step === 'queue_position' || progress.step === 'queue_estimate';
   const stepLabel = progress.detail || STEP_LABELS[progress.step] || 'Mixing your remix';
 
   return (
@@ -388,22 +392,49 @@ export function MixProcess({ songA, songB, progress, sessionId, onCancel, stageO
       </div>
 
       <div className="mix-progress-shell">
-        <div className="mix-progress-percent">{pct}%</div>
-        <div className="mix-progress-step">{stepLabel}</div>
-        <div className="mix-progress-bar">
-          <i style={{ width: `${pct}%` }} />
-        </div>
-        <div className="mix-actions">
-          {smsState === 'confirmed' ? (
-            <span>We'll text you</span>
-          ) : (
-            <button onClick={() => setSmsState('dialog-open')}>
-              <Phone size={15} aria-hidden="true" />
-              Text me when it's ready (remix can take up to 4 mins)
-            </button>
-          )}
-          <button onClick={onCancel}>Cancel</button>
-        </div>
+        {isQueued ? (
+          <>
+            <div className="mix-progress-step" style={{ fontSize: '1.4rem', marginBottom: '0.5rem' }}>
+              Another remix is in progress
+            </div>
+            <div className="mix-progress-step" style={{ opacity: 0.7 }}>
+              Yours will start automatically — hang tight
+            </div>
+            <div className="mix-progress-bar" style={{ marginTop: '1rem' }}>
+              <i className="mix-bar-pulse" />
+            </div>
+            <div className="mix-actions" style={{ marginTop: '1.2rem' }}>
+              {smsState === 'confirmed' ? (
+                <span>We'll text you when it's ready</span>
+              ) : (
+                <button onClick={() => setSmsState('dialog-open')} className="mix-sms-cta-prominent">
+                  <Phone size={15} aria-hidden="true" />
+                  Text me when it's ready
+                </button>
+              )}
+              <button onClick={onCancel}>Cancel</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="mix-progress-percent">{pct}%</div>
+            <div className="mix-progress-step">{stepLabel}</div>
+            <div className="mix-progress-bar">
+              <i style={{ width: `${pct}%` }} />
+            </div>
+            <div className="mix-actions">
+              {smsState === 'confirmed' ? (
+                <span>We'll text you</span>
+              ) : (
+                <button onClick={() => setSmsState('dialog-open')}>
+                  <Phone size={15} aria-hidden="true" />
+                  Text me when it's ready (remix can take up to 4 mins)
+                </button>
+              )}
+              <button onClick={onCancel}>Cancel</button>
+            </div>
+          </>
+        )}
       </div>
 
       {smsState === 'dialog-open' && (

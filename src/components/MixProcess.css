@@ -627,6 +627,38 @@
   cursor: not-allowed;
 }
 
+/* Pulsing bar for queue state */
+.mix-bar-pulse {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, #f5b042, transparent);
+  background-size: 200% 100%;
+  animation: bar-shimmer 2s ease-in-out infinite;
+}
+
+@keyframes bar-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Prominent SMS CTA for queue state */
+.mix-sms-cta-prominent {
+  background: rgba(245, 176, 66, 0.15) !important;
+  border: 1px solid rgba(245, 176, 66, 0.4) !important;
+  border-radius: 8px;
+  padding: 12px 24px !important;
+  color: #fde68a !important;
+  font-size: 15px !important;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.mix-sms-cta-prominent:hover {
+  background: rgba(245, 176, 66, 0.25) !important;
+  border-color: rgba(245, 176, 66, 0.6) !important;
+  color: #fff7df !important;
+}
+
 @media (max-width: 680px) {
   .mix-deck-pair { gap: 36px; }
   .mix-deck {
