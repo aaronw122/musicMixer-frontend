@@ -57,8 +57,17 @@ export function useRemixProgress(
             eventSourceRef.current?.close();
             return;
           }
-          if (status.status === 'processing' || status.status === 'queued') {
+          if (status.status === 'processing') {
             // Still running — reset timeout and let SSE continue
+            resetTimeout();
+            return;
+          }
+          if (status.status === 'queued') {
+            // Still queued — re-emit queue event so the UI stays in queue mode
+            dispatch({
+              type: 'PROGRESS_EVENT',
+              event: { step: 'queue_position', detail: 'Waiting for an open slot...', progress: 0 },
+            });
             resetTimeout();
             return;
           }
@@ -85,6 +94,14 @@ export function useRemixProgress(
 
         // Keepalive -- reset timeout but don't update UI
         if (data.step === 'keepalive') {
+          resetTimeout();
+          return;
+        }
+
+        // processing_started is a transitional event (queue → active).
+        // Skip it so the queue UI persists until real progress arrives.
+        if (data.step === 'processing_started') {
+          currentStepRef.current = data.step;
           resetTimeout();
           return;
         }
