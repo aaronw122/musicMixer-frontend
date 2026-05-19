@@ -83,7 +83,7 @@ export function Tonearm({ pivotX, pivotY, angle, scale, deckId = 'default' }: Pr
       {/* Inner hub */}
       <circle
         cx={pivotX}
-        cy={pivotY + counterweightInnerR * 0.4}
+        cy={pivotY - counterweightInnerR * 1.4}
         r={counterweightInnerR}
         fill="#1d1e20"
       />
