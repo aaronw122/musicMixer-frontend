@@ -139,8 +139,8 @@ export function RemixPage() {
     case 'processing':
       return (
         <MixProcess
-          songA={(routeState?.songA ?? { type: 'file' }) as SongInput}
-          songB={(routeState?.songB ?? { type: 'file' }) as SongInput}
+          songA={routeState?.songA}
+          songB={routeState?.songB}
           progress={state.progress}
           sessionId={sessionId}
           onCancel={goHome}
