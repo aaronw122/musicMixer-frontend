@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import type { ShelfRecord } from '../types';
 import { useShelf } from '../hooks/useShelf';
 
@@ -25,6 +25,10 @@ export function SongPickerModal({ open, onClose, onConfirm }: Props) {
   const [pendingPick, setPendingPick] = useState<ShelfRecord | null>(null);
   const [transitioning, setTransitioning] = useState(false);
 
+  // Refs for focus management
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
   // "Add from YouTube" inline form
   const [showAddForm, setShowAddForm] = useState(false);
   const [addUrl, setAddUrl] = useState('');
@@ -48,6 +52,59 @@ export function SongPickerModal({ open, onClose, onConfirm }: Props) {
       setNewRecordId(null);
     }
     return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  // Escape key handler
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, onClose]);
+
+  // Focus trap: capture focus on open, trap Tab inside modal, restore on close
+  useEffect(() => {
+    if (!open) return;
+
+    // Save the previously focused element to restore on close
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+
+    // Focus the modal container
+    const modal = modalRef.current;
+    if (modal) modal.focus();
+
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || !modal) return;
+
+      const focusable = modal.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleTab);
+    return () => {
+      document.removeEventListener('keydown', handleTab);
+      // Restore focus to previously focused element
+      previousFocusRef.current?.focus();
+    };
   }, [open]);
 
   function handleBackdropClick(e: React.MouseEvent) {
@@ -112,8 +169,13 @@ export function SongPickerModal({ open, onClose, onConfirm }: Props) {
   return (
     <div className={`modal-backdrop ${open ? 'open' : ''}`} onClick={handleBackdropClick}>
       <div
+        ref={modalRef}
         className={`modal-card ${transitioning ? 'transitioning' : ''}`}
         onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={step === 1 ? 'Select vocals' : 'Select instrumentals'}
+        tabIndex={-1}
       >
         {/* Header */}
         <div className="modal-header">
@@ -127,7 +189,7 @@ export function SongPickerModal({ open, onClose, onConfirm }: Props) {
               <span className={`dot ${step >= 2 ? 'active' : ''}`} />
             </div>
           </div>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={onClose} aria-label="Close song picker">
             ✕
           </button>
         </div>
