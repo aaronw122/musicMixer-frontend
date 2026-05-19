@@ -46,6 +46,25 @@ export function RecordPlayerView({
   // Track whether we're in the middle of a play/pause transition
   const transitionRef = useRef(false);
 
+  // Collect all pending timeout IDs so they can be cleared on unmount
+  const pendingTimeouts = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+  const safeTimeout = useCallback((fn: () => void, ms: number) => {
+    const id = setTimeout(() => {
+      pendingTimeouts.current.delete(id);
+      fn();
+    }, ms);
+    pendingTimeouts.current.add(id);
+    return id;
+  }, []);
+
+  // Clear all pending timeouts on unmount
+  useEffect(() => {
+    return () => {
+      pendingTimeouts.current.forEach(clearTimeout);
+      pendingTimeouts.current.clear();
+    };
+  }, []);
+
   const {
     isPlaying: audioIsPlaying,
     currentTime,
@@ -83,7 +102,7 @@ export function RecordPlayerView({
     setPhase('playing');
 
     // Small delay so tonearm starts swinging before audio begins
-    setTimeout(async () => {
+    safeTimeout(async () => {
       try {
         await play();
       } catch {
@@ -92,7 +111,7 @@ export function RecordPlayerView({
       }
       transitionRef.current = false;
     }, TONEARM_SWING_DELAY_MS);
-  }, [phase, play]);
+  }, [phase, play, safeTimeout]);
 
   // === Phase 1: Record placement animation ===
   useEffect(() => {
@@ -100,7 +119,7 @@ export function RecordPlayerView({
       if (autoPlayAfterPlacement) {
         transitionRef.current = true;
         setPhase('playing');
-        setTimeout(async () => {
+        safeTimeout(async () => {
           try {
             await play();
           } catch {
@@ -111,11 +130,11 @@ export function RecordPlayerView({
       }
       return;
     }
-    const timer = setTimeout(() => {
+    const timer = safeTimeout(() => {
       if (autoPlayAfterPlacement) {
         transitionRef.current = true;
         setPhase('playing');
-        setTimeout(async () => {
+        safeTimeout(async () => {
           try {
             await play();
           } catch {
@@ -128,7 +147,7 @@ export function RecordPlayerView({
       setPhase('idle');
     }, PLACEMENT_DURATION_MS);
     return () => clearTimeout(timer);
-  }, [autoPlayAfterPlacement, skipPlacement, play]);
+  }, [autoPlayAfterPlacement, skipPlacement, play, safeTimeout]);
 
   // === Pause handler ===
   const handlePause = useCallback(() => {
@@ -140,10 +159,10 @@ export function RecordPlayerView({
     setPhase('paused');
 
     // Allow tonearm to return before clearing transition lock
-    setTimeout(() => {
+    safeTimeout(() => {
       transitionRef.current = false;
     }, 800);
-  }, [phase, pause]);
+  }, [phase, pause, safeTimeout]);
 
   // === Rewind handler ===
   const handleRewind = useCallback(() => {
