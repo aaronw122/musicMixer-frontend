@@ -10,8 +10,8 @@ type MixStage = '' | 'is-floating' | 'is-breaking' | 'is-mixing' | 'is-sealed' |
 type SmsState = 'idle' | 'dialog-open' | 'confirmed';
 
 type Props = {
-  songA: SongInput;
-  songB: SongInput;
+  songA?: SongInput;
+  songB?: SongInput;
   progress: ProgressEvent;
   sessionId: string;
   onCancel: () => void;
@@ -32,8 +32,8 @@ const STEP_LABELS: Record<string, string> = {
 };
 const FLOATING_NOTES = ['♪', '♫', '♬', '♩'];
 
-function thumbnailFor(song: SongInput): string | undefined {
-  return song.type === 'youtube' ? song.thumbnailUrl : undefined;
+function thumbnailFor(song: SongInput | undefined): string | undefined {
+  return song?.type === 'youtube' ? song.thumbnailUrl : undefined;
 }
 
 function VinylImage({ thumbnailUrl }: { thumbnailUrl?: string }) {

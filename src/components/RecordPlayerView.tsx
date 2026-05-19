@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { TurntableScene } from './turntable';
 import { FloatingControls } from './turntable';
 import { useAudioPlayer } from '../hooks/useAudioPlayer';
+import { useTrackedTimeout } from '../hooks/useTrackedTimeout';
 
 type AnimationPhase = 'placing' | 'idle' | 'playing' | 'paused';
 
@@ -46,6 +47,8 @@ export function RecordPlayerView({
   // Track whether we're in the middle of a play/pause transition
   const transitionRef = useRef(false);
 
+  const safeTimeout = useTrackedTimeout();
+
   const {
     isPlaying: audioIsPlaying,
     currentTime,
@@ -57,6 +60,23 @@ export function RecordPlayerView({
     audioRef,
     error,
   } = useAudioPlayer({ audioUrl });
+
+  // === Delayed play: set phase, swing tonearm, then start audio ===
+  const startPlaybackAfterTonearmDelay = useCallback(
+    (fallbackPhase: AnimationPhase) => {
+      transitionRef.current = true;
+      setPhase('playing');
+      safeTimeout(async () => {
+        try {
+          await play();
+        } catch {
+          setPhase(fallbackPhase);
+        }
+        transitionRef.current = false;
+      }, TONEARM_SWING_DELAY_MS);
+    },
+    [play, safeTimeout],
+  );
 
   // === Tonearm angle calculation ===
   const tonearmAngle = (() => {
@@ -74,61 +94,30 @@ export function RecordPlayerView({
   const isSpinning = phase === 'playing';
 
   // === Play handler ===
-  const handlePlay = useCallback(async () => {
+  const handlePlay = useCallback(() => {
     if (transitionRef.current) return;
     if (phase !== 'idle' && phase !== 'paused') return;
 
-    const previousPhase = phase;
-    transitionRef.current = true;
-    setPhase('playing');
-
-    // Small delay so tonearm starts swinging before audio begins
-    setTimeout(async () => {
-      try {
-        await play();
-      } catch {
-        // Browser blocked autoplay — revert to previous phase
-        setPhase(previousPhase);
-      }
-      transitionRef.current = false;
-    }, TONEARM_SWING_DELAY_MS);
-  }, [phase, play]);
+    startPlaybackAfterTonearmDelay(phase);
+  }, [phase, startPlaybackAfterTonearmDelay]);
 
   // === Phase 1: Record placement animation ===
   useEffect(() => {
     if (skipPlacement) {
       if (autoPlayAfterPlacement) {
-        transitionRef.current = true;
-        setPhase('playing');
-        setTimeout(async () => {
-          try {
-            await play();
-          } catch {
-            setPhase('idle');
-          }
-          transitionRef.current = false;
-        }, TONEARM_SWING_DELAY_MS);
+        startPlaybackAfterTonearmDelay('idle');
       }
       return;
     }
-    const timer = setTimeout(() => {
+    const timer = safeTimeout(() => {
       if (autoPlayAfterPlacement) {
-        transitionRef.current = true;
-        setPhase('playing');
-        setTimeout(async () => {
-          try {
-            await play();
-          } catch {
-            setPhase('idle');
-          }
-          transitionRef.current = false;
-        }, TONEARM_SWING_DELAY_MS);
+        startPlaybackAfterTonearmDelay('idle');
         return;
       }
       setPhase('idle');
     }, PLACEMENT_DURATION_MS);
     return () => clearTimeout(timer);
-  }, [autoPlayAfterPlacement, skipPlacement, play]);
+  }, [autoPlayAfterPlacement, skipPlacement, startPlaybackAfterTonearmDelay, safeTimeout]);
 
   // === Pause handler ===
   const handlePause = useCallback(() => {
@@ -140,10 +129,10 @@ export function RecordPlayerView({
     setPhase('paused');
 
     // Allow tonearm to return before clearing transition lock
-    setTimeout(() => {
+    safeTimeout(() => {
       transitionRef.current = false;
     }, 800);
-  }, [phase, pause]);
+  }, [phase, pause, safeTimeout]);
 
   // === Rewind handler ===
   const handleRewind = useCallback(() => {

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { ShelfRecord } from '../types';
 import { useShelf } from '../hooks/useShelf';
+import { useModalKeyboardBehavior } from '../hooks/useModalKeyboardBehavior';
 
 type Props = {
   open: boolean;
@@ -24,6 +25,10 @@ export function SongPickerModal({ open, onClose, onConfirm }: Props) {
   const [vocalsRecord, setVocalsRecord] = useState<ShelfRecord | null>(null);
   const [pendingPick, setPendingPick] = useState<ShelfRecord | null>(null);
   const [transitioning, setTransitioning] = useState(false);
+
+  // Ref for focus management
+  const modalRef = useRef<HTMLDivElement>(null);
+  useModalKeyboardBehavior({ open, modalRef, onClose });
 
   // "Add from YouTube" inline form
   const [showAddForm, setShowAddForm] = useState(false);
@@ -112,8 +117,13 @@ export function SongPickerModal({ open, onClose, onConfirm }: Props) {
   return (
     <div className={`modal-backdrop ${open ? 'open' : ''}`} onClick={handleBackdropClick}>
       <div
+        ref={modalRef}
         className={`modal-card ${transitioning ? 'transitioning' : ''}`}
         onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={step === 1 ? 'Select vocals' : 'Select instrumentals'}
+        tabIndex={-1}
       >
         {/* Header */}
         <div className="modal-header">
@@ -127,7 +137,7 @@ export function SongPickerModal({ open, onClose, onConfirm }: Props) {
               <span className={`dot ${step >= 2 ? 'active' : ''}`} />
             </div>
           </div>
-          <button className="modal-close" onClick={onClose}>
+          <button className="modal-close" onClick={onClose} aria-label="Close song picker">
             ✕
           </button>
         </div>

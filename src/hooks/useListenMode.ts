@@ -117,11 +117,14 @@ export function useListenMode(): ListenModeResult {
         setListenState({ substate: 'processing' });
         pollTimer = setTimeout(fetchPublicRemix, POLL_INTERVAL_MS);
       } else if (status === 400) {
+        consumeListenParam();
         setListenState({ substate: 'invalid' });
       } else if (status === 410) {
+        consumeListenParam();
         setListenState({ substate: 'expired' });
       } else {
-        // 404, network error (0), or any other status
+        // 404, network error (0), or any other non-retryable status
+        consumeListenParam();
         setListenState({ substate: 'unavailable' });
       }
     }
