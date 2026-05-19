@@ -1,4 +1,4 @@
-import { useReducer, useCallback, useEffect, useState } from 'react';
+import { useReducer, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { remixReducer, initialState } from '../hooks/useRemixReducer';
 import { useFormPersistence } from '../hooks/useFormPersistence';
@@ -8,7 +8,7 @@ import { MixButton } from './MixButton';
 import { RecordShelf } from './RecordShelf';
 import { SongPickerModal } from './SongPickerModal';
 import { createRemix, submitYouTubeRemix } from '../api/client';
-import type { AppState, CreateRemixError, ShelfRecord, SongInput } from '../types';
+import type { CreateRemixError, ShelfRecord, SongInput } from '../types';
 
 function formatError(error: CreateRemixError): string {
   switch (error.type) {
@@ -31,9 +31,10 @@ function formatError(error: CreateRemixError): string {
   }
 }
 
-/** True when both slots have YouTube URLs (no file uploads). */
-function isBothYouTube(a: SongInput | null, b: SongInput | null): boolean {
-  return a?.type === 'youtube' && b?.type === 'youtube';
+function toSongState(s: SongInput) {
+  return s.type === 'youtube'
+    ? { type: 'youtube' as const, url: s.url, thumbnailUrl: s.thumbnailUrl }
+    : { type: 'file' as const };
 }
 
 export function RemixSession() {
@@ -42,85 +43,48 @@ export function RemixSession() {
   useFormPersistence(state, dispatch);
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Derive session ID only when actively processing (used in effect + dep array)
-  const activeSessionId = state.phase === 'processing' ? state.sessionId : null;
-
-  // Navigate to remix page when processing starts
-  useEffect(() => {
-    if (state.phase === 'processing') {
-      // Pass minimal serializable song data for processing visuals.
-      const toSongState = (s: SongInput) =>
-        s.type === 'youtube'
-          ? { type: 'youtube' as const, url: s.url, thumbnailUrl: s.thumbnailUrl }
-          : { type: 'file' as const };
-      navigate(`/remix/${activeSessionId}`, {
-        state: {
-          creator: true,
-          songA: toSongState(state.songA),
-          songB: toSongState(state.songB),
-        },
-      });
-    }
-  }, [state.phase, activeSessionId, navigate]);
-
-  // Handle file upload submission
-  const handleUpload = useCallback(async () => {
-    if (state.phase !== 'uploading') return;
-    if (state.songA.type !== 'file' || state.songB.type !== 'file') return;
-
-    try {
-      const response = await createRemix(
-        state.songA.file,
-        state.songB.file,
-        (pct) => dispatch({ type: 'UPLOAD_PROGRESS', percent: pct }),
-      );
-      dispatch({ type: 'UPLOAD_SUCCESS', sessionId: response.session_id });
-    } catch (err) {
-      dispatch({ type: 'ERROR', message: formatError(err as CreateRemixError) });
-    }
-  }, [state]);
-
-  // Handle YouTube URL submission
-  const handleYouTubeSubmit = useCallback(async () => {
-    if (state.phase !== 'submitting') return;
-    if (state.songA.type !== 'youtube' || state.songB.type !== 'youtube') return;
-
-    try {
-      const response = await submitYouTubeRemix(
-        state.songA.url,
-        state.songB.url,
-      );
-      dispatch({ type: 'SUBMIT_SUCCESS', sessionId: response.session_id });
-    } catch (err) {
-      dispatch({ type: 'ERROR', message: formatError(err as CreateRemixError) });
-    }
-  }, [state]);
-
-  // Trigger upload when entering uploading phase
-  useEffect(() => {
-    if (state.phase === 'uploading') handleUpload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.phase]);
-
-  // Trigger YouTube submit when entering submitting phase
-  useEffect(() => {
-    if (state.phase === 'submitting') handleYouTubeSubmit();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.phase]);
-
-  // Submit handler
-  const handleSubmit = useCallback(() => {
+  // Submit handler — calls API directly, navigates on success
+  const handleSubmit = useCallback(async () => {
     if (state.phase !== 'idle') return;
     const { songA, songB } = state;
     if (!songA || !songB) return;
 
-    if (isBothYouTube(songA, songB)) {
-      dispatch({ type: 'START_SUBMIT' });
-    } else {
-      dispatch({ type: 'START_UPLOAD' });
+    setSubmitting(true);
+
+    try {
+      let sessionId: string;
+
+      if (songA.type === 'youtube' && songB.type === 'youtube') {
+        const response = await submitYouTubeRemix(songA.url, songB.url);
+        sessionId = response.session_id;
+      } else if (songA.type === 'file' && songB.type === 'file') {
+        const response = await createRemix(
+          songA.file,
+          songB.file,
+          (pct) => setUploadProgress(pct),
+        );
+        sessionId = response.session_id;
+      } else {
+        setSubmitting(false);
+        return; // Mixed types not supported
+      }
+
+      navigate(`/remix/${sessionId}`, {
+        state: {
+          creator: true,
+          songA: toSongState(songA),
+          songB: toSongState(songB),
+        },
+      });
+    } catch (err) {
+      setSubmitting(false);
+      setUploadProgress(0);
+      dispatch({ type: 'ERROR', message: formatError(err as CreateRemixError) });
     }
-  }, [state]);
+  }, [state, navigate]);
 
   // Modal confirm — load both songs from shelf records
   const handleModalConfirm = useCallback(
@@ -155,116 +119,31 @@ export function RemixSession() {
   const deckB = <InputDeck deckId="b" song={songB} />;
   const cabinet = <RecordShelf />;
 
-  // --- Phase render functions ---
-
-  function renderIdle() {
-    return (
-      <DJBoard
-        deckA={deckA}
-        deckB={deckB}
-        mixControls={
-          <MixButton
-            canMix={bothLoaded}
-            submitting={false}
-            onClick={handleSubmit}
-          />
-        }
-        cabinetContent={cabinet}
-        cabinetOverlay={
-          <button
-            className="cta"
-            onClick={() => setModalOpen(true)}
-          >
-            {ctaLabel}
-          </button>
-        }
-      />
-    );
-  }
-
-  function renderUploading(s: Extract<AppState, { phase: 'uploading' }>) {
+  if (state.phase === 'error') {
     return (
       <>
+        <header className="app-header">
+          <h1>musicMixer</h1>
+          <p>Pick two songs. AI grabs the vocals from one and drops them over instrumentals from the other.</p>
+        </header>
         <DJBoard
-          deckA={deckA}
-          deckB={deckB}
-          mixControls={
-            <MixButton
-              canMix={false}
-              submitting={true}
-              onClick={() => {}}
-            />
-          }
-          cabinetContent={cabinet}
-        />
-        {/* Upload progress below the stage */}
-        <div className="mx-auto mt-4 w-full max-w-md space-y-1">
-          <div className="h-2 rounded-full bg-black/30 overflow-hidden border border-amber-900/30">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-300"
-              style={{ width: `${s.uploadProgress}%` }}
-            />
-          </div>
-          <p className="text-xs text-amber-200/40 text-center">
-            Uploading... {s.uploadProgress}%
-          </p>
-        </div>
-      </>
-    );
-  }
-
-  function renderSubmitting() {
-    return (
-      <>
-        <DJBoard
-          deckA={deckA}
-          deckB={deckB}
-          mixControls={
-            <MixButton
-              canMix={false}
-              submitting={true}
-              onClick={() => {}}
-            />
-          }
-          cabinetContent={cabinet}
-        />
-        <p className="mt-4 text-sm text-amber-200/40 text-center">
-          Submitting your songs...
-        </p>
-      </>
-    );
-  }
-
-  function renderError(s: Extract<AppState, { phase: 'error' }>) {
-    return (
-      <DJBoard
-        centerContent={
-          <div className="w-full max-w-md mx-auto text-center space-y-4 py-4">
-            <div className="rounded-lg border border-amber-700/50 bg-amber-950/25 p-6">
-              <p className="text-amber-200/80">{s.message}</p>
+          centerContent={
+            <div className="w-full max-w-md mx-auto text-center space-y-4 py-4">
+              <div className="rounded-lg border border-amber-700/50 bg-amber-950/25 p-6">
+                <p className="text-amber-200/80">{state.message}</p>
+              </div>
+              <button
+                className="rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 px-6 py-3 text-sm font-medium text-amber-50 hover:from-amber-500 hover:to-amber-700 transition-colors min-h-[44px]"
+                onClick={() => dispatch({ type: 'RETRY' })}
+              >
+                Try Again
+              </button>
             </div>
-            <button
-              className="rounded-lg bg-gradient-to-br from-amber-600 to-amber-800 px-6 py-3 text-sm font-medium text-amber-50 hover:from-amber-500 hover:to-amber-700 transition-colors min-h-[44px]"
-              onClick={() => dispatch({ type: 'RETRY' })}
-            >
-              Try Again
-            </button>
-          </div>
-        }
-        cabinetContent={cabinet}
-      />
+          }
+          cabinetContent={cabinet}
+        />
+      </>
     );
-  }
-
-  function renderPhase() {
-    switch (state.phase) {
-      case 'idle':        return renderIdle();
-      case 'uploading':   return renderUploading(state);
-      case 'submitting':  return renderSubmitting();
-      case 'processing':
-      case 'ready':       return null;
-      case 'error':       return renderError(state);
-    }
   }
 
   return (
@@ -297,7 +176,41 @@ export function RemixSession() {
         onConfirm={handleModalConfirm}
       />
 
-      {renderPhase()}
+      <DJBoard
+        deckA={deckA}
+        deckB={deckB}
+        mixControls={
+          <MixButton
+            canMix={bothLoaded && !submitting}
+            submitting={submitting}
+            onClick={handleSubmit}
+          />
+        }
+        cabinetContent={cabinet}
+        cabinetOverlay={
+          !submitting ? (
+            <button
+              className="cta"
+              onClick={() => setModalOpen(true)}
+            >
+              {ctaLabel}
+            </button>
+          ) : undefined
+        }
+      />
+      {submitting && uploadProgress > 0 && (
+        <div className="mx-auto mt-4 w-full max-w-md space-y-1">
+          <div className="h-2 rounded-full bg-black/30 overflow-hidden border border-amber-900/30">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-300"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+          <p className="text-xs text-amber-200/40 text-center">
+            Uploading... {uploadProgress}%
+          </p>
+        </div>
+      )}
     </>
   );
 }
