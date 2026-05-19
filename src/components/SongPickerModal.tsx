@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import type { ShelfRecord } from '../types';
 import { useShelf } from '../hooks/useShelf';
 
