@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 
 type Props = {
   canMix: boolean;
@@ -72,32 +72,40 @@ export function MixButton({ canMix, submitting, onClick }: Props) {
     if (val) setMixR(Number(val));
   }, []);
 
-  // Overlay-based click/hover detection for the MIX circle area.
-  // Uses a positioned overlay div instead of document-level listeners to avoid
-  // click-through-modal issues and global cursor mutation.
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const [overlayStyle, setOverlayStyle] = useState<React.CSSProperties>({});
+  // Document-level click listener — bypasses 3D transform hit-testing bugs in Chromium.
+  // getBoundingClientRect gives projected screen coords, so we can check if the click
+  // landed within the MIX circle regardless of CSS 3D transforms.
+  const onClickRef = useRef(onClick);
+  onClickRef.current = onClick;
 
-  // Compute overlay position to cover the circular MIX button hit area
-  useEffect(() => {
+  const isInMixCircle = useCallback((clientX: number, clientY: number) => {
     const el = containerRef.current;
-    if (!el) return;
-    // Compute percentages relative to the SVG viewBox (260x440)
-    const rFrac = (mixR + 4) / 260; // include chrome rim
-    const cxFrac = mixCx / 260;
-    const cyFrac = mixCy / 440;
-    setOverlayStyle({
-      position: 'absolute',
-      left: `${(cxFrac - rFrac) * 100}%`,
-      top: `${(cyFrac - rFrac * (260 / 440)) * 100}%`,
-      width: `${rFrac * 2 * 100}%`,
-      height: `${rFrac * 2 * (260 / 440) * 100}%`,
-      borderRadius: '50%',
-      cursor: isReady ? 'pointer' : 'default',
-      pointerEvents: isReady ? 'auto' : 'none',
-      zIndex: 10,
-    });
-  }, [mixR, isReady]);
+    if (!el) return false;
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width * (mixCx / 260);
+    const cy = rect.top + rect.height * (mixCy / 440);
+    const r = rect.width * (mixR / 260);
+    const dx = clientX - cx;
+    const dy = clientY - cy;
+    return dx * dx + dy * dy <= r * r;
+  }, [mixR]);
+
+  useEffect(() => {
+    if (!isReady) return;
+    const handleClick = (e: MouseEvent) => {
+      if (isInMixCircle(e.clientX, e.clientY)) onClickRef.current();
+    };
+    const handleMove = (e: MouseEvent) => {
+      document.body.style.cursor = isInMixCircle(e.clientX, e.clientY) ? 'pointer' : '';
+    };
+    document.addEventListener('click', handleClick, true);
+    document.addEventListener('mousemove', handleMove);
+    return () => {
+      document.removeEventListener('click', handleClick, true);
+      document.removeEventListener('mousemove', handleMove);
+      document.body.style.cursor = '';
+    };
+  }, [isReady, isInMixCircle]);
 
   /* Tick marks around the MIX button rim */
   const ticks: { x1: number; y1: number; x2: number; y2: number }[] = [];
@@ -113,13 +121,6 @@ export function MixButton({ canMix, submitting, onClick }: Props) {
 
   return (
     <div ref={containerRef} className="mix-panel relative w-full h-full">
-    {/* Transparent circular overlay for MIX button click/hover detection */}
-    <div
-      ref={overlayRef}
-      style={overlayStyle}
-      onClick={isReady ? onClick : undefined}
-      aria-hidden="true"
-    />
     <svg
       viewBox="0 0 260 440"
       className="w-full h-full"
