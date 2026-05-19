@@ -244,13 +244,15 @@
 .mix-scene.is-breaking .mix-vinyl.right { opacity: 1; }
 
 .mix-scene.is-mixing .mix-vinyl.left {
-  transform: translate(-130px, -40px) rotate(0deg) scale(0.75);
+  transform: translate(calc(-130px * var(--mix-converge, 1)), -40px) rotate(0deg) scale(0.75);
   opacity: 1;
+  transition: transform 400ms ease-out, opacity 600ms ease;
 }
 
 .mix-scene.is-mixing .mix-vinyl.right {
-  transform: translate(130px, -40px) rotate(0deg) scale(0.75);
+  transform: translate(calc(130px * var(--mix-converge, 1)), -40px) rotate(0deg) scale(0.75);
   opacity: 1;
+  transition: transform 400ms ease-out, opacity 600ms ease;
 }
 
 .mix-scene.is-sealed .mix-vinyl.left,
@@ -369,12 +371,14 @@
   opacity: 1;
 }
 .mix-scene.is-mixing .mix-vinyl-spindle.left {
-  transform: translate(-130px, -40px) scale(0.75);
+  transform: translate(calc(-130px * var(--mix-converge, 1)), -40px) scale(0.75);
   opacity: 1;
+  transition: transform 400ms ease-out, opacity 600ms ease;
 }
 .mix-scene.is-mixing .mix-vinyl-spindle.right {
-  transform: translate(130px, -40px) scale(0.75);
+  transform: translate(calc(130px * var(--mix-converge, 1)), -40px) scale(0.75);
   opacity: 1;
+  transition: transform 400ms ease-out, opacity 600ms ease;
 }
 .mix-scene.is-sealed .mix-vinyl-spindle,
 .mix-scene.is-done .mix-vinyl-spindle { opacity: 0; }
@@ -689,11 +693,11 @@
   }
   .mix-scene.is-mixing .mix-vinyl.left,
   .mix-scene.is-mixing .mix-vinyl-spindle.left {
-    transform: translate(-88px, -10px) rotate(0deg) scale(0.7);
+    transform: translate(calc(-88px * var(--mix-converge, 1)), -10px) rotate(0deg) scale(0.7);
   }
   .mix-scene.is-mixing .mix-vinyl.right,
   .mix-scene.is-mixing .mix-vinyl-spindle.right {
-    transform: translate(88px, -10px) rotate(0deg) scale(0.7);
+    transform: translate(calc(88px * var(--mix-converge, 1)), -10px) rotate(0deg) scale(0.7);
   }
   .mix-progress-percent { font-size: 56px; }
   .mix-progress-step { letter-spacing: 0.16em; }
@@ -704,16 +708,16 @@
     transform: translateY(-8vh);
   }
   .mix-scene.is-mixing .mix-vinyl.left {
-    transform: translate(-130px, -8vh) rotate(0deg) scale(0.65);
+    transform: translate(calc(-130px * var(--mix-converge, 1)), -8vh) rotate(0deg) scale(0.65);
   }
   .mix-scene.is-mixing .mix-vinyl.right {
-    transform: translate(130px, -8vh) rotate(0deg) scale(0.65);
+    transform: translate(calc(130px * var(--mix-converge, 1)), -8vh) rotate(0deg) scale(0.65);
   }
   .mix-scene.is-mixing .mix-vinyl-spindle.left {
-    transform: translate(-130px, -8vh);
+    transform: translate(calc(-130px * var(--mix-converge, 1)), -8vh);
   }
   .mix-scene.is-mixing .mix-vinyl-spindle.right {
-    transform: translate(130px, -8vh);
+    transform: translate(calc(130px * var(--mix-converge, 1)), -8vh);
   }
   .mix-progress-shell {
     padding-bottom: 4vh;

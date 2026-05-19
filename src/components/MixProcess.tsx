@@ -308,6 +308,11 @@ export function MixProcess({ songA, songB, progress, sessionId, onCancel, stageO
   const isQueued = progress.step === 'queue_position' || progress.step === 'queue_estimate';
   const stepLabel = progress.detail || STEP_LABELS[progress.step] || 'Mixing your remix';
 
+  // Halves converge: fraction goes 1→0 as pct goes 0→88
+  const mixFraction = stage === 'is-mixing'
+    ? 1 - Math.min(pct / 88, 1)
+    : undefined;
+
   return (
     <div className={`mix-scene ${stage}`} role="status" aria-live="polite">
       <div className="mix-bg-table" aria-hidden="true" />
@@ -326,15 +331,31 @@ export function MixProcess({ songA, songB, progress, sessionId, onCancel, stageO
         <div className="mix-vinyl-whole right">
           <VinylImage thumbnailUrl={thumbB} />
         </div>
-        <div className="mix-vinyl-spindle left">
+        <div
+          className="mix-vinyl-spindle left"
+          style={mixFraction != null ? { '--mix-converge': mixFraction } as CSSProperties : undefined}
+        >
           <span className="dot" />
         </div>
-        <div className="mix-vinyl-spindle right">
+        <div
+          className="mix-vinyl-spindle right"
+          style={mixFraction != null ? { '--mix-converge': mixFraction } as CSSProperties : undefined}
+        >
           <span className="dot" />
         </div>
 
-        <div className="mix-vinyl left"><VinylImage thumbnailUrl={thumbA} /></div>
-        <div className="mix-vinyl right"><VinylImage thumbnailUrl={thumbB} /></div>
+        <div
+          className="mix-vinyl left"
+          style={mixFraction != null ? { '--mix-converge': mixFraction } as CSSProperties : undefined}
+        >
+          <VinylImage thumbnailUrl={thumbA} />
+        </div>
+        <div
+          className="mix-vinyl right"
+          style={mixFraction != null ? { '--mix-converge': mixFraction } as CSSProperties : undefined}
+        >
+          <VinylImage thumbnailUrl={thumbB} />
+        </div>
         <div className="mix-vinyl discarded right-piece">
           <VinylImage thumbnailUrl={thumbA} />
         </div>
