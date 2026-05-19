@@ -95,4 +95,13 @@ Requires the backend running on `http://localhost:8000`.
 
 ## Lessons Learned
 
-_(Add entries here as the frontend is built)_
+- **Click events inside 3D transforms are fragile.** The DJ board uses `rotateX(18deg)` on `.table` with `transform-style: preserve-3d`. Elements inside this context have unreliable hit-testing:
+  - **CSS overlay divs fail** — percentage positioning can't account for SVG `preserveAspectRatio` letterboxing within the 3D context
+  - **SVG-internal click targets fail** — `<circle>` elements inside a `pointer-events: none` SVG don't receive clicks under 3D transforms
+  - **Container `onClick` fails** — `pointer-events: none` on the SVG causes clicks to fall through the entire 3D plane, not up to the parent div
+  - **Real `<button>` inside `.table` fails** — the button is inside the `rotateX` transform chain, which breaks click delivery
+  - **What works:** Document-level click listener with `getBoundingClientRect` coordinate math (screen-space, accounts for 3D projection). This is why `MixButton.tsx` uses this pattern — do not replace it without testing.
+
+- **`filter` on `.unit` breaks clicks in 3D transforms.** `.unit` has `filter: drop-shadow(...)` which creates a flattened compositing layer that breaks click events inside 3D-transformed parents. `.mixer-wrap` overrides this with `filter: none`. Never add a filter back to `.mixer-wrap` or its children.
+
+- **The CTA "Select Songs" button works because it's outside `.table`.** It lives in `.cabinet-overlay` (sibling of `.cabinet`, child of `.cabinet-area`), which has no `rotateX` transform and no filter. To make a new clickable element work in the DJ board, either use the document-level listener pattern or position the element outside `.table` (e.g., a new overlay slot in `DJBoard`).

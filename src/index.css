@@ -190,7 +190,7 @@ body {
   max-width: 200px;
   width: 100%;
   align-self: stretch;
-  filter: none; /* override .unit drop-shadow — filter compositing breaks click events inside 3D transforms */
+  /* keep drop-shadow like turntables — mixer has no clickable children that need 3D hit-testing */
 }
 
 /* ═══════════════════════════════════════════
