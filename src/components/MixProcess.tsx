@@ -94,7 +94,7 @@ function useMixStage(progress: ProgressEvent): MixStage {
       };
     }
 
-    if (progress.progress >= 0.88 || progress.step === 'rendering') {
+    if (progress.progress >= 0.96 || progress.step === 'rendering') {
       const sealTimer = window.setTimeout(() => setStage('is-sealed'), 0);
       return () => window.clearTimeout(sealTimer);
     }
@@ -308,9 +308,9 @@ export function MixProcess({ songA, songB, progress, sessionId, onCancel, stageO
   const isQueued = progress.step === 'queue_position' || progress.step === 'queue_estimate';
   const stepLabel = progress.detail || STEP_LABELS[progress.step] || 'Mixing your remix';
 
-  // Halves converge: fraction goes 1→0 as pct goes 0→88
+  // Halves converge: fraction goes 1→0 as pct goes 0→96
   const mixFraction = stage === 'is-mixing'
-    ? 1 - Math.min(pct / 88, 1)
+    ? 1 - Math.min(pct / 96, 1)
     : undefined;
 
   return (
