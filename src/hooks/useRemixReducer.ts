@@ -54,47 +54,6 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
       if (state.phase !== 'idle') return state;
       return { ...state, songB: null };
 
-    case 'START_UPLOAD':
-      if (state.phase !== 'idle' || !state.songA || !state.songB) return state;
-      return {
-        phase: 'uploading',
-        songA: state.songA,
-        songB: state.songB,
-        uploadProgress: 0,
-      };
-
-    case 'START_SUBMIT':
-      if (state.phase !== 'idle' || !state.songA || !state.songB) return state;
-      return {
-        phase: 'submitting',
-        songA: state.songA,
-        songB: state.songB,
-      };
-
-    case 'UPLOAD_PROGRESS':
-      if (state.phase !== 'uploading') return state;
-      return { ...state, uploadProgress: action.percent };
-
-    case 'UPLOAD_SUCCESS':
-      if (state.phase !== 'uploading') return state;
-      return {
-        phase: 'processing',
-        sessionId: action.sessionId,
-        progress: { step: 'separating', detail: 'Starting pipeline...', progress: 0.02 },
-        songA: state.songA,
-        songB: state.songB,
-      };
-
-    case 'SUBMIT_SUCCESS':
-      if (state.phase !== 'submitting') return state;
-      return {
-        phase: 'processing',
-        sessionId: action.sessionId,
-        progress: { step: 'downloading', detail: 'Starting download...', progress: 0.02 },
-        songA: state.songA,
-        songB: state.songB,
-      };
-
     case 'PROGRESS_EVENT':
       if (state.phase !== 'processing') return state;
       return { ...state, progress: action.event };
@@ -113,8 +72,6 @@ export function remixReducer(state: AppState, action: AppAction): AppState {
     case 'ERROR': {
       const hasFormData =
         state.phase === 'idle' ||
-        state.phase === 'uploading' ||
-        state.phase === 'submitting' ||
         state.phase === 'processing';
       return {
         phase: 'error' as const,

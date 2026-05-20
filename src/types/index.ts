@@ -51,17 +51,6 @@ export type AppState =
       songB: SongInput | null;
     }
   | {
-      phase: 'uploading';
-      songA: SongInput;
-      songB: SongInput;
-      uploadProgress: number;
-    }
-  | {
-      phase: 'submitting';
-      songA: SongInput;
-      songB: SongInput;
-    }
-  | {
       phase: 'processing';
       sessionId: string;
       progress: ProgressEvent;
@@ -92,11 +81,6 @@ export type AppAction =
   | { type: 'SET_YOUTUBE_URL_B'; url: string; title?: string; thumbnailUrl?: string }
   | { type: 'CLEAR_SONG_A' }
   | { type: 'CLEAR_SONG_B' }
-  | { type: 'START_UPLOAD' }
-  | { type: 'START_SUBMIT' }
-  | { type: 'UPLOAD_PROGRESS'; percent: number }
-  | { type: 'UPLOAD_SUCCESS'; sessionId: string }
-  | { type: 'SUBMIT_SUCCESS'; sessionId: string }
   | { type: 'PROGRESS_EVENT'; event: ProgressEvent }
   | { type: 'REMIX_READY'; explanation: string; warnings: string[]; usedFallback: boolean; keyWarning?: string }
   | { type: 'ERROR'; message: string }
