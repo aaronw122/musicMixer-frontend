@@ -41,9 +41,9 @@ const PLACEHOLDER_RECORDS: ShelfRecord[] = [
     id: 'grateful-dead-althea',
     title: 'Althea',
     artist: 'Grateful Dead',
-    sleeve_image_url: 'https://i.ytimg.com/vi/k9Yz0MC4bkQ/hqdefault.jpg',
-    youtube_url: 'https://www.youtube.com/watch?v=k9Yz0MC4bkQ',
-    thumbnail_url: 'https://i.ytimg.com/vi/k9Yz0MC4bkQ/hqdefault.jpg',
+    sleeve_image_url: 'https://i.ytimg.com/vi/ZZNZgtj26Fk/hqdefault.jpg',
+    youtube_url: 'https://www.youtube.com/watch?v=ZZNZgtj26Fk',
+    thumbnail_url: 'https://i.ytimg.com/vi/ZZNZgtj26Fk/hqdefault.jpg',
   },
   {
     id: 'roy-orbison-you-got-it',
