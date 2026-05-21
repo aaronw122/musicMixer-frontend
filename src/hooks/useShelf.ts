@@ -9,9 +9,9 @@ const PLACEHOLDER_RECORDS: ShelfRecord[] = [
     id: 'house-of-pain-jump-around',
     title: 'Jump Around',
     artist: 'House of Pain',
-    sleeve_image_url: 'https://i.ytimg.com/vi/XhzpxjuwZy0/hqdefault.jpg',
-    youtube_url: 'https://www.youtube.com/watch?v=XhzpxjuwZy0',
-    thumbnail_url: 'https://i.ytimg.com/vi/XhzpxjuwZy0/hqdefault.jpg',
+    sleeve_image_url: 'https://i.ytimg.com/vi/yYl597lyZvo/hqdefault.jpg',
+    youtube_url: 'https://www.youtube.com/watch?v=yYl597lyZvo',
+    thumbnail_url: 'https://i.ytimg.com/vi/yYl597lyZvo/hqdefault.jpg',
   },
   {
     id: 'kool-and-the-gang-get-down-on-it',
