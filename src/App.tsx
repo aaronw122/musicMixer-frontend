@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import { RemixSession } from './components/RemixSession';
 import { RemixPage } from './components/RemixPage';
 import { MixProcessPreview } from './components/MixProcessPreview';
+import { useGoatCounter } from './hooks/useGoatCounter';
 
 /** Redirect legacy ?listen=<id> share links to /remix/:id */
 function HomeWithRedirect() {
@@ -21,6 +22,8 @@ function HomeWithRedirect() {
 }
 
 function App() {
+  useGoatCounter();
+
   return (
     <div className="min-h-screen flex flex-col items-center gap-[18px] px-4 py-8">
       <Routes>
