@@ -3,6 +3,12 @@ name: Trigger Deploy
 on:
   push:
     branches: [main]
+    paths-ignore:
+      # Docs/config-only changes don't affect the built artifact — skip the
+      # deploy dispatch to the backend repo so they don't rebuild + redeploy.
+      - '**.md'
+      - '.gitignore'
+      - '.claude/**'
 
 jobs:
   trigger:
