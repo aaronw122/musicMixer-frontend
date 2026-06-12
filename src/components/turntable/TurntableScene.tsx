@@ -37,6 +37,15 @@ const RECORD_R = 116;
 const LABEL_R = 34;
 const FELT_R = PLATTER_R - 10.5;
 
+// Curved label title (thumbnail case) — truncate, then start-anchor on the arc.
+const LABEL_MAX_CHARS = 12;
+// Arc offset (% along the label arc) where the title's first char begins. Start
+// at the arc midpoint and shift left as the title grows, so short titles look
+// centered and long ones stay safely left-aligned (never clipping the first char).
+const LABEL_ARC_CENTER_PCT = 50;
+const LABEL_ARC_PCT_PER_CHAR = 3;
+const LABEL_ARC_MIN_OFFSET_PCT = 5;
+
 // Tonearm pivot position (top-right area)
 const PIVOT_X = 285;
 const PIVOT_Y = 80;
@@ -63,6 +72,17 @@ export function TurntableScene({
   // Determine vinyl fill color: use vinylColor if provided, else default dark
   const vinylFillColor = vinylColor ?? '#1a1a2e';
   const hasMixedRecord = !!mixedRecord?.leftThumbnailUrl || !!mixedRecord?.rightThumbnailUrl;
+
+  // See todo/done/vinyl-label-text-truncation.md for why this is start-anchored.
+  const labelTitle = (
+    remixTitle.length > LABEL_MAX_CHARS
+      ? remixTitle.slice(0, LABEL_MAX_CHARS) + '...'
+      : remixTitle
+  ).toUpperCase();
+  const labelArcOffset = Math.max(
+    LABEL_ARC_MIN_OFFSET_PCT,
+    LABEL_ARC_CENTER_PCT - labelTitle.length * LABEL_ARC_PCT_PER_CHAR,
+  );
 
   // Generate brushed-line texture lines for the plinth
   const brushedLines: React.ReactElement[] = [];
@@ -435,14 +455,11 @@ export function TurntableScene({
                 >
                   <textPath
                     href={`#${id('labelArc')}`}
-                    startOffset="50%"
-                    textAnchor="middle"
+                    startOffset={`${labelArcOffset}%`}
+                    textAnchor="start"
                     dy="1em"
                   >
-                    {(remixTitle.length > 15
-                      ? remixTitle.slice(0, 15) + '...'
-                      : remixTitle
-                    ).toUpperCase()}
+                    {labelTitle}
                   </textPath>
                 </text>
                 {/* Center spindle hole */}
