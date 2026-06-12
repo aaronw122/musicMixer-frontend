@@ -3,15 +3,15 @@ import type { CSSProperties } from 'react';
 import { Phone } from 'lucide-react';
 import { registerSmsNotification } from '../api/client';
 import { MixedVinylRecord, TurntableScene } from './turntable';
-import type { ProgressEvent, SongInput } from '../types';
+import type { ProgressEvent, RouteSongState } from '../types';
 import './MixProcess.css';
 
 type MixStage = '' | 'is-floating' | 'is-breaking' | 'is-mixing' | 'is-sealed' | 'is-done';
 type SmsState = 'idle' | 'dialog-open' | 'confirmed';
 
 type Props = {
-  songA?: SongInput;
-  songB?: SongInput;
+  songA?: RouteSongState;
+  songB?: RouteSongState;
   progress: ProgressEvent;
   sessionId: string;
   onCancel: () => void;
@@ -32,7 +32,7 @@ const STEP_LABELS: Record<string, string> = {
 };
 const FLOATING_NOTES = ['♪', '♫', '♬', '♩'];
 
-function thumbnailFor(song: SongInput | undefined): string | undefined {
+function thumbnailFor(song: RouteSongState | undefined): string | undefined {
   return song?.type === 'youtube' ? song.thumbnailUrl : undefined;
 }
 

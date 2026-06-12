@@ -77,6 +77,7 @@ export function useRemixProgress(
         dispatch({
           type: 'ERROR',
           message: 'Processing is taking longer than expected. Please try again.',
+          source: 'timeout',
         });
         eventSourceRef.current?.close();
       }, ms);
@@ -130,7 +131,13 @@ export function useRemixProgress(
         }
 
         if (data.step === 'error') {
-          dispatch({ type: 'ERROR', message: data.detail || 'Something went wrong.' });
+          // Forward the structured-error fields (optional, pending backend).
+          dispatch({
+            type: 'ERROR',
+            message: data.detail || 'Something went wrong.',
+            errorClass: data.error_class,
+            failedSong: data.failed_song,
+          });
           es.close();
           return;
         }
@@ -180,6 +187,7 @@ export function useRemixProgress(
         dispatch({
           type: 'ERROR',
           message: 'Lost connection to the server. Please try again.',
+          source: 'connection',
         });
         es.close();
       }

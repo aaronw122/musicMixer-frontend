@@ -7,31 +7,11 @@ import { InputDeck } from './InputDeck';
 import { MixButton } from './MixButton';
 import { RecordShelf } from './RecordShelf';
 import { SongPickerModal } from './SongPickerModal';
-import { createRemix, submitYouTubeRemix } from '../api/client';
-import type { CreateRemixError, ShelfRecord, SongInput } from '../types';
+import { formatCreateRemixError } from '../utils/remixErrors';
+import { submitRemixSongs } from '../utils/remixSubmit';
+import type { CreateRemixError, RouteSongState, ShelfRecord, SongInput } from '../types';
 
-function formatError(error: CreateRemixError): string {
-  switch (error.type) {
-    case 'network':
-      return 'Request failed. Check your connection and try again.';
-    case 'timeout':
-      return 'Request timed out. Please try again.';
-    case 'http':
-      if (error.status === 429) {
-        return 'Another remix is being created. Please wait and try again.';
-      } else if (error.status === 413) {
-        return error.body.detail || 'File too large. Maximum 50MB per song.';
-      } else if (error.status === 422) {
-        return error.body.detail || 'Invalid input. Please check your uploads.';
-      } else {
-        return error.body.detail || 'Something went wrong. Please try again.';
-      }
-    default:
-      return 'Something went wrong. Please try again.';
-  }
-}
-
-function toSongState(s: SongInput) {
+function toSongState(s: SongInput): RouteSongState {
   return s.type === 'youtube'
     ? { type: 'youtube' as const, url: s.url, thumbnailUrl: s.thumbnailUrl }
     : { type: 'file' as const };
@@ -55,24 +35,13 @@ export function RemixSession() {
     setSubmitting(true);
 
     try {
-      let sessionId: string;
-
-      if (songA.type === 'youtube' && songB.type === 'youtube') {
-        const response = await submitYouTubeRemix(songA.url, songB.url);
-        sessionId = response.session_id;
-      } else if (songA.type === 'file' && songB.type === 'file') {
-        const response = await createRemix(
-          songA.file,
-          songB.file,
-          (pct) => setUploadProgress(pct),
-        );
-        sessionId = response.session_id;
-      } else {
+      const result = await submitRemixSongs(songA, songB, (pct) => setUploadProgress(pct));
+      if (!result.ok) {
         setSubmitting(false);
         return; // Mixed types not supported
       }
 
-      navigate(`/remix/${sessionId}`, {
+      navigate(`/remix/${result.sessionId}`, {
         state: {
           creator: true,
           songA: toSongState(songA),
@@ -82,7 +51,7 @@ export function RemixSession() {
     } catch (err) {
       setSubmitting(false);
       setUploadProgress(0);
-      dispatch({ type: 'ERROR', message: formatError(err as CreateRemixError) });
+      dispatch({ type: 'ERROR', message: formatCreateRemixError(err as CreateRemixError) });
     }
   }, [state, navigate]);
 

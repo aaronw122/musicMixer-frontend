@@ -1,6 +1,11 @@
 import { useEffect, useRef } from 'react';
 import type { AppState, AppAction, SongInput } from '../types';
 
+export type PersistedSelections = {
+  songA: SongInput | null;
+  songB: SongInput | null;
+};
+
 const DB_NAME = 'musicSpinner';
 const DB_VERSION = 1;
 const STORE_NAME = 'formData';
@@ -55,7 +60,7 @@ async function loadFile(key: string): Promise<File | null> {
   });
 }
 
-async function clearFiles(): Promise<void> {
+export async function clearFiles(): Promise<void> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -87,9 +92,55 @@ function loadYouTubeUrl(key: string): StoredYouTube | null {
   }
 }
 
-function clearYouTubeUrls(): void {
+export function clearYouTubeUrls(): void {
   sessionStorage.removeItem(SONG_A_YT_KEY);
   sessionStorage.removeItem(SONG_B_YT_KEY);
+}
+
+// Route state cannot carry uploaded File objects, so persisted selections are
+// cleared only after the creator observes a successful remix.
+export async function clearPersistedSelections(): Promise<void> {
+  clearYouTubeUrls();
+  await clearFiles().catch(() => {});
+}
+
+export async function loadPersistedSelections(): Promise<PersistedSelections> {
+  let songA: SongInput | null = null;
+  let songB: SongInput | null = null;
+  try {
+    const [fileA, fileB] = await Promise.all([loadFile('songA'), loadFile('songB')]);
+    const ytA = loadYouTubeUrl(SONG_A_YT_KEY);
+    const ytB = loadYouTubeUrl(SONG_B_YT_KEY);
+
+    if (fileA) songA = { type: 'file', file: fileA };
+    else if (ytA) songA = { type: 'youtube', url: ytA.url, title: ytA.title, thumbnailUrl: ytA.thumbnailUrl };
+
+    if (fileB) songB = { type: 'file', file: fileB };
+    else if (ytB) songB = { type: 'youtube', url: ytB.url, title: ytB.title, thumbnailUrl: ytB.thumbnailUrl };
+  } catch {
+    // Storage unavailable — degrade to no selections (retry will navigate home).
+  }
+  return { songA, songB };
+}
+
+function dispatchRestoredSong(
+  slot: 'A' | 'B',
+  song: SongInput | null,
+  dispatch: React.Dispatch<AppAction>,
+): void {
+  if (!song) return;
+
+  if (song.type === 'file') {
+    dispatch({ type: slot === 'A' ? 'SET_SONG_A' : 'SET_SONG_B', file: song.file });
+    return;
+  }
+
+  dispatch({
+    type: slot === 'A' ? 'SET_YOUTUBE_URL_A' : 'SET_YOUTUBE_URL_B',
+    url: song.url,
+    title: song.title,
+    thumbnailUrl: song.thumbnailUrl,
+  });
 }
 
 // --- Persistence helpers for SongInput ---
@@ -135,41 +186,9 @@ export function useFormPersistence(
     restored.current = true;
 
     async function restore() {
-      try {
-        // Try loading files from IndexedDB
-        const [fileA, fileB] = await Promise.all([loadFile('songA'), loadFile('songB')]);
-
-        // Try loading YouTube URLs from sessionStorage
-        const ytA = loadYouTubeUrl(SONG_A_YT_KEY);
-        const ytB = loadYouTubeUrl(SONG_B_YT_KEY);
-
-        // Restore Song A (file takes precedence if both exist)
-        if (fileA) {
-          dispatch({ type: 'SET_SONG_A', file: fileA });
-        } else if (ytA) {
-          dispatch({
-            type: 'SET_YOUTUBE_URL_A',
-            url: ytA.url,
-            title: ytA.title,
-            thumbnailUrl: ytA.thumbnailUrl,
-          });
-        }
-
-        // Restore Song B
-        if (fileB) {
-          dispatch({ type: 'SET_SONG_B', file: fileB });
-        } else if (ytB) {
-          dispatch({
-            type: 'SET_YOUTUBE_URL_B',
-            url: ytB.url,
-            title: ytB.title,
-            thumbnailUrl: ytB.thumbnailUrl,
-          });
-        }
-
-      } catch {
-        // Storage unavailable — silently degrade
-      }
+      const selections = await loadPersistedSelections();
+      dispatchRestoredSong('A', selections.songA, dispatch);
+      dispatchRestoredSong('B', selections.songB, dispatch);
     }
     restore();
   }, [dispatch]);
@@ -181,11 +200,6 @@ export function useFormPersistence(
     persistSongInput('B', songB);
   }, [state.phase, songA, songB]);
 
-  // Clear storage when remix is complete
-  useEffect(() => {
-    if (state.phase === 'ready') {
-      clearYouTubeUrls();
-      clearFiles().catch(() => {});
-    }
-  }, [state.phase]);
+  // RemixPage clears creator selections after success; this hook only restores
+  // and persists the editable form.
 }
