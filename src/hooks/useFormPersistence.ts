@@ -1,6 +1,11 @@
 import { useEffect, useRef } from 'react';
 import type { AppState, AppAction, SongInput } from '../types';
 
+export type PersistedSelections = {
+  songA: SongInput | null;
+  songB: SongInput | null;
+};
+
 const DB_NAME = 'musicSpinner';
 const DB_VERSION = 1;
 const STORE_NAME = 'formData';
@@ -55,7 +60,7 @@ async function loadFile(key: string): Promise<File | null> {
   });
 }
 
-async function clearFiles(): Promise<void> {
+export async function clearFiles(): Promise<void> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -87,9 +92,48 @@ function loadYouTubeUrl(key: string): StoredYouTube | null {
   }
 }
 
-function clearYouTubeUrls(): void {
+export function clearYouTubeUrls(): void {
   sessionStorage.removeItem(SONG_A_YT_KEY);
   sessionStorage.removeItem(SONG_B_YT_KEY);
+}
+
+/**
+ * Clear ALL persisted selections (files + YouTube URLs).
+ *
+ * The source of truth for a creator's selections lives here, NOT in route
+ * state — `toSongState`/route-state drops the uploaded `File`. This is the
+ * single place RemixPage calls to wipe selections on the creator's observed
+ * success (gated on `isCreator`). It must NOT run for listeners, mid-mix
+ * navigation, tab close, or partial failure.
+ */
+export async function clearPersistedSelections(): Promise<void> {
+  clearYouTubeUrls();
+  await clearFiles().catch(() => {});
+}
+
+/**
+ * Load the creator's persisted selections so a failed mix can be retried
+ * WITHOUT re-upload / re-paste. Files come from IndexedDB (the route-state
+ * `File` is dropped), YouTube URLs from sessionStorage. File takes precedence
+ * if both somehow exist for a slot, matching the restore order in the hook.
+ */
+export async function loadPersistedSelections(): Promise<PersistedSelections> {
+  let songA: SongInput | null = null;
+  let songB: SongInput | null = null;
+  try {
+    const [fileA, fileB] = await Promise.all([loadFile('songA'), loadFile('songB')]);
+    const ytA = loadYouTubeUrl(SONG_A_YT_KEY);
+    const ytB = loadYouTubeUrl(SONG_B_YT_KEY);
+
+    if (fileA) songA = { type: 'file', file: fileA };
+    else if (ytA) songA = { type: 'youtube', url: ytA.url, title: ytA.title, thumbnailUrl: ytA.thumbnailUrl };
+
+    if (fileB) songB = { type: 'file', file: fileB };
+    else if (ytB) songB = { type: 'youtube', url: ytB.url, title: ytB.title, thumbnailUrl: ytB.thumbnailUrl };
+  } catch {
+    // Storage unavailable — degrade to no selections (retry will navigate home).
+  }
+  return { songA, songB };
 }
 
 // --- Persistence helpers for SongInput ---
@@ -181,11 +225,9 @@ export function useFormPersistence(
     persistSongInput('B', songB);
   }, [state.phase, songA, songB]);
 
-  // Clear storage when remix is complete
-  useEffect(() => {
-    if (state.phase === 'ready') {
-      clearYouTubeUrls();
-      clearFiles().catch(() => {});
-    }
-  }, [state.phase]);
+  // NOTE: clear-on-success is NOT done here. Under two-page routing the
+  // 'ready' transition happens on RemixPage (a separate reducer) AFTER
+  // navigation, so this component never observes it. The clear now lives in
+  // RemixPage's REMIX_READY handler, gated on `isCreator` so it never wipes a
+  // listener's own draft selections. See clearPersistedSelections().
 }

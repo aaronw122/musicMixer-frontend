@@ -110,7 +110,13 @@ export function useRemixProgress(
         }
 
         if (data.step === 'error') {
-          dispatch({ type: 'ERROR', message: data.detail || 'Something went wrong.' });
+          // Forward the structured-error fields (optional, pending backend).
+          dispatch({
+            type: 'ERROR',
+            message: data.detail || 'Something went wrong.',
+            errorClass: data.error_class,
+            failedSong: data.failed_song,
+          });
           es.close();
           return;
         }

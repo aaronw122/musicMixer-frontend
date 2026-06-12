@@ -11,6 +11,14 @@ export type ProgressStep =
   | 'error'
   | 'keepalive';
 
+// Structured-error wire contract (frontend side). These fields are emitted on
+// the SSE `error` event by the backend (Part B). They are OPTIONAL: the
+// frontend must build and degrade gracefully BEFORE the backend emits them.
+// Missing `error_class` → treat as 'permanent' (safe default: don't auto-retry
+// a failure we can't prove is transient).
+export type ErrorClass = 'transient' | 'permanent';
+export type FailedSong = 'A' | 'B';
+
 export type ProgressEvent = {
   step: ProgressStep;
   detail: string;
@@ -19,6 +27,9 @@ export type ProgressEvent = {
   warnings?: string[];
   usedFallback?: boolean;
   keyWarning?: string;
+  // Only present on `step === 'error'` events (optional, pending backend).
+  error_class?: ErrorClass;
+  failed_song?: FailedSong;
 };
 
 export type CreateRemixResponse = {
@@ -96,7 +107,7 @@ export type AppAction =
   | { type: 'SUBMIT_SUCCESS'; sessionId: string }
   | { type: 'PROGRESS_EVENT'; event: ProgressEvent }
   | { type: 'REMIX_READY'; explanation: string; warnings: string[]; usedFallback: boolean; keyWarning?: string }
-  | { type: 'ERROR'; message: string }
+  | { type: 'ERROR'; message: string; errorClass?: ErrorClass; failedSong?: FailedSong }
   | { type: 'RETRY' }
   | { type: 'CANCEL' }
   | { type: 'RESET' };
