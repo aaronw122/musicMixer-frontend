@@ -225,9 +225,6 @@ export function useFormPersistence(
     persistSongInput('B', songB);
   }, [state.phase, songA, songB]);
 
-  // NOTE: clear-on-success is NOT done here. Under two-page routing the
-  // 'ready' transition happens on RemixPage (a separate reducer) AFTER
-  // navigation, so this component never observes it. The clear now lives in
-  // RemixPage's REMIX_READY handler, gated on `isCreator` so it never wipes a
-  // listener's own draft selections. See clearPersistedSelections().
+  // NOTE: clear-on-success is NOT done here — it lives in RemixPage and calls
+  // clearPersistedSelections(). See that function's doc for the rationale.
 }
