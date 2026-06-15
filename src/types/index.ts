@@ -14,6 +14,15 @@ export type ProgressStep =
   | 'queue_estimate'
   | 'processing_started';
 
+// Structured-error wire contract (frontend side). These fields are emitted on
+// the SSE `error` event by the backend (Part B). They are OPTIONAL: the
+// frontend must build and degrade gracefully BEFORE the backend emits them.
+// Missing `error_class` → treat as 'permanent' (safe default: don't auto-retry
+// a failure we can't prove is transient).
+export type ErrorClass = 'transient' | 'permanent';
+export type FailedSong = 'A' | 'B';
+export type ClientErrorSource = 'timeout' | 'connection' | 'retry-submit' | 'retry-unavailable';
+
 export type ProgressEvent = {
   step: ProgressStep;
   detail: string;
@@ -22,6 +31,9 @@ export type ProgressEvent = {
   warnings?: string[];
   usedFallback?: boolean;
   keyWarning?: string;
+  // Only present on `step === 'error'` events (optional, pending backend).
+  error_class?: ErrorClass;
+  failed_song?: FailedSong;
 };
 
 export type CreateRemixResponse = {
@@ -40,6 +52,10 @@ export type SessionStatus = {
 
 export type SongInput =
   | { type: 'file'; file: File }
+  | { type: 'youtube'; url: string; title?: string; thumbnailUrl?: string };
+
+export type RouteSongState =
+  | { type: 'file' }
   | { type: 'youtube'; url: string; title?: string; thumbnailUrl?: string };
 
 // === App State (discriminated union) ===
@@ -81,9 +97,11 @@ export type AppAction =
   | { type: 'SET_YOUTUBE_URL_B'; url: string; title?: string; thumbnailUrl?: string }
   | { type: 'CLEAR_SONG_A' }
   | { type: 'CLEAR_SONG_B' }
+  | { type: 'START_LISTENING' }
+  | { type: 'START_PROCESSING'; progress: ProgressEvent }
   | { type: 'PROGRESS_EVENT'; event: ProgressEvent }
   | { type: 'REMIX_READY'; explanation: string; warnings: string[]; usedFallback: boolean; keyWarning?: string }
-  | { type: 'ERROR'; message: string }
+  | { type: 'ERROR'; message: string; errorClass?: ErrorClass; failedSong?: FailedSong; source?: ClientErrorSource }
   | { type: 'RETRY' }
   | { type: 'CANCEL' }
   | { type: 'RESET' };
