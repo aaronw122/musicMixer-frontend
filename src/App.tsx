@@ -33,11 +33,11 @@ function App() {
       </Routes>
       <footer className="py-6 text-center text-xs text-amber-200/25">
         <div className="flex items-center justify-center gap-3">
-          <a href="/about" className="hover:text-amber-200/50 transition-colors min-h-[44px] inline-flex items-center">About</a>
+          <a href="/about.html" className="hover:text-amber-200/50 transition-colors min-h-[44px] inline-flex items-center">About</a>
           <span aria-hidden="true">·</span>
-          <a href="/terms" className="hover:text-amber-200/50 transition-colors min-h-[44px] inline-flex items-center">Terms</a>
+          <a href="/terms.html" className="hover:text-amber-200/50 transition-colors min-h-[44px] inline-flex items-center">Terms</a>
           <span aria-hidden="true">·</span>
-          <a href="/privacy" className="hover:text-amber-200/50 transition-colors min-h-[44px] inline-flex items-center">Privacy</a>
+          <a href="/privacy.html" className="hover:text-amber-200/50 transition-colors min-h-[44px] inline-flex items-center">Privacy</a>
         </div>
         <p className="mt-1">&copy; 2026 musicMixer</p>
       </footer>
