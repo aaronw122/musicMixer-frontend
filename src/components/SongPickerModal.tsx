@@ -132,9 +132,10 @@ export function SongPickerModal({ open, onClose, onConfirm }: Props) {
             <h2 className="step-title">
               {step === 1 ? 'Select vocals' : 'Select instrumentals'}
             </h2>
-            <div className="step-dots">
-              <span className={`dot ${step >= 1 ? 'active' : ''}`} />
-              <span className={`dot ${step >= 2 ? 'active' : ''}`} />
+            <div className="step-pick">
+              {pendingPick && (
+                <span className="step-pick-title">{pendingPick.title}</span>
+              )}
             </div>
           </div>
           <button className="modal-close" onClick={onClose} aria-label="Close song picker">
@@ -213,25 +214,6 @@ export function SongPickerModal({ open, onClose, onConfirm }: Props) {
                 </div>
               );
             })}
-
-          {/* Ghost "Add from YouTube" tile */}
-          {!isLoading && !error && !showAddForm && (
-            <div className="picker-card add-yt-ghost" onClick={() => setShowAddForm(true)}>
-              <div className="picker-vinyl">
-                <svg viewBox="0 0 140 140" className="picker-disc add-yt-disc">
-                  <circle cx="70" cy="70" r="68" fill="none" stroke="rgba(245, 176, 66, 0.2)" strokeWidth="1.5" strokeDasharray="6 4" />
-                  <circle cx="70" cy="70" r="12" fill="none" stroke="rgba(245, 176, 66, 0.15)" strokeWidth="0.5" />
-                  <circle cx="70" cy="70" r="2" fill="rgba(245, 176, 66, 0.2)" />
-                  {/* Plus icon */}
-                  <line x1="58" y1="70" x2="82" y2="70" stroke="rgba(245, 176, 66, 0.45)" strokeWidth="2" strokeLinecap="round" />
-                  <line x1="70" y1="58" x2="70" y2="82" stroke="rgba(245, 176, 66, 0.45)" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </div>
-              <div className="info">
-                <div className="t add-yt-label">Add from YouTube</div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Add from YouTube inline form */}
@@ -271,15 +253,16 @@ export function SongPickerModal({ open, onClose, onConfirm }: Props) {
 
         {/* Footer */}
         <div className="modal-footer">
-          <div className="footer-hint">
-            {pendingPick ? (
-              <>
-                {step === 1 ? 'Vocals: ' : 'Instrumentals: '}
-                <span className="selected-title">{pendingPick.title}</span>
-              </>
-            ) : step === 1
-              ? 'Choose a song for vocals'
-              : 'Choose a song for instrumentals'}
+          <div className="footer-add">
+            {!showAddForm && (
+              <button
+                type="button"
+                className="add-yt-link"
+                onClick={() => setShowAddForm(true)}
+              >
+                + Add from YouTube
+              </button>
+            )}
           </div>
           <div>
             {step === 2 && (

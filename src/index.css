@@ -417,20 +417,15 @@ body {
   transition: opacity 160ms ease, transform 205ms ease;
 }
 
-.step-dots {
-  display: flex;
-  gap: 6px;
+.step-pick {
+  min-height: 18px;
   margin-top: 10px;
+  transition: opacity 160ms ease, transform 205ms ease;
 }
-.step-dots .dot {
-  width: 28px;
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(245, 176, 66, 0.2);
-  transition: background 200ms ease;
-}
-.step-dots .dot.active {
-  background: var(--amber);
+.step-pick-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fdf3df;
 }
 
 .modal-close {
@@ -543,7 +538,7 @@ body {
 }
 .modal-card.transitioning .step-title,
 .modal-card.transitioning .step-eyebrow,
-.modal-card.transitioning .footer-hint {
+.modal-card.transitioning .step-pick {
   opacity: 0;
   transform: translateX(-12px);
 }
@@ -558,14 +553,22 @@ body {
   background: rgba(0,0,0,0.3);
   flex-shrink: 0;
 }
-.footer-hint {
-  font-size: 13px;
-  color: rgba(253, 230, 138, 0.55);
-  transition: opacity 160ms ease, transform 205ms ease;
+.footer-add {
+  display: flex;
+  align-items: center;
 }
-.footer-hint .selected-title {
-  color: #fdf3df;
-  font-weight: 600;
+.add-yt-link {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: rgba(245, 176, 66, 0.7);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+.add-yt-link:hover {
+  color: var(--amber);
 }
 .modal-footer > div:last-child {
   display: flex;
@@ -610,22 +613,6 @@ body {
 }
 .continue-btn:not(:disabled):hover {
   filter: brightness(1.08);
-}
-
-/* Add from YouTube — ghost tile */
-.add-yt-ghost {
-  opacity: 0.55;
-  transition: opacity 180ms ease, transform 180ms ease;
-}
-.add-yt-ghost:hover {
-  opacity: 0.85;
-}
-.add-yt-disc {
-  filter: none !important;
-}
-.add-yt-label {
-  color: rgba(245, 176, 66, 0.55) !important;
-  font-weight: 500 !important;
 }
 
 /* Add from YouTube — inline form */
@@ -890,13 +877,14 @@ body {
   .step-eyebrow {
     font-size: 9px;
   }
-  .step-dots {
+  .step-pick {
     margin-top: 4px;
+    min-height: 16px;
   }
   .modal-footer {
     padding: 8px 16px;
   }
-  .footer-hint {
+  .add-yt-link {
     font-size: 11px;
   }
   .continue-btn,
