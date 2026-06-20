@@ -79,6 +79,7 @@ export function MixProcessPreview() {
               sessionId="preview"
               onCancel={() => {}}
               stageOverride={item.stage}
+              disableHaptics
             />
           </article>
         ))}

@@ -17,6 +17,7 @@ type Props = {
   sessionId: string;
   onCancel: () => void;
   stageOverride?: MixStage;
+  disableHaptics?: boolean;
 };
 
 const STEP_LABELS: Record<string, string> = {
@@ -299,7 +300,7 @@ function SmsDialog({
   );
 }
 
-export function MixProcess({ songA, songB, progress, sessionId, onCancel, stageOverride }: Props) {
+export function MixProcess({ songA, songB, progress, sessionId, onCancel, stageOverride, disableHaptics }: Props) {
   const liveStage = useMixStage(progress);
   const stage = stageOverride ?? liveStage;
   const [smsState, setSmsState] = useState<SmsState>('idle');
@@ -310,6 +311,7 @@ export function MixProcess({ songA, songB, progress, sessionId, onCancel, stageO
   const lastPctRef = useRef(0);
   const buzzedRef = useRef(false);
   useEffect(() => {
+    if (disableHaptics) return;
     if (pct <= lastPctRef.current) return;
     lastPctRef.current = pct;
     if (pct >= 99) {
@@ -320,7 +322,7 @@ export function MixProcess({ songA, songB, progress, sessionId, onCancel, stageO
       return;
     }
     tickHaptic();
-  }, [pct]);
+  }, [pct, disableHaptics]);
 
   const isQueued = progress.step === 'queue_position' || progress.step === 'queue_estimate';
   const stepLabel = progress.detail || STEP_LABELS[progress.step] || 'Mixing your remix';
