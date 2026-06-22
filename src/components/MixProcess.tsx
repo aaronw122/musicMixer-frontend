@@ -1,7 +1,8 @@
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Phone } from 'lucide-react';
 import { registerSmsNotification } from '../api/client';
+import { tickHaptic, buzzHaptic } from '../lib/haptics';
 import { MixedVinylRecord, TurntableScene } from './turntable';
 import type { ProgressEvent, RouteSongState } from '../types';
 import './MixProcess.css';
@@ -305,6 +306,22 @@ export function MixProcess({ songA, songB, progress, sessionId, onCancel, stageO
   const thumbA = thumbnailFor(songA);
   const thumbB = thumbnailFor(songB);
   const pct = Math.max(0, Math.min(100, Math.round(progress.progress * 100)));
+
+  const lastPctRef = useRef(0);
+  const buzzedRef = useRef(false);
+  useEffect(() => {
+    if (pct <= lastPctRef.current) return;
+    lastPctRef.current = pct;
+    if (pct >= 99) {
+      if (!buzzedRef.current) {
+        buzzedRef.current = true;
+        buzzHaptic();
+      }
+      return;
+    }
+    tickHaptic();
+  }, [pct]);
+
   const isQueued = progress.step === 'queue_position' || progress.step === 'queue_estimate';
   const stepLabel = progress.detail || STEP_LABELS[progress.step] || 'Mixing your remix';
 
