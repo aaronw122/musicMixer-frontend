@@ -423,6 +423,11 @@ body {
   transition: opacity 160ms ease, transform 205ms ease;
 }
 .step-pick-title {
+  display: block;
+  max-width: min(70vw, 760px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 13px;
   font-weight: 600;
   color: #fdf3df;
