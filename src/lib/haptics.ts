@@ -7,8 +7,17 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+// Desktop browsers expose navigator.vibrate but have no haptic hardware, so
+// gate on touch capability instead — vibration only does anything on mobile.
+function isHapticCapableDevice(): boolean {
+  if (typeof navigator === 'undefined' || typeof window === 'undefined') return false;
+  const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+  return coarsePointer || (navigator.maxTouchPoints ?? 0) > 0;
+}
+
 function getHaptics(): WebHaptics | null {
   if (typeof window === 'undefined') return null;
+  if (!isHapticCapableDevice()) return null;
   if (prefersReducedMotion()) return null;
   if (!instance) instance = new WebHaptics();
   return instance;
