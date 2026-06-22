@@ -29,7 +29,9 @@ function App() {
       <Routes>
         <Route path="/" element={<HomeWithRedirect />} />
         <Route path="/remix/:sessionId" element={<RemixPage />} />
-        <Route path="/mix-process-preview" element={<MixProcessPreview />} />
+        {import.meta.env.DEV && (
+          <Route path="/mix-process-preview" element={<MixProcessPreview />} />
+        )}
       </Routes>
       <footer className="py-6 text-center text-xs text-amber-200/25">
         <div className="flex items-center justify-center gap-3">
