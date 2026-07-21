@@ -462,6 +462,21 @@ body {
   overflow-y: auto;
   align-content: start;
   transition: opacity 160ms ease, transform 205ms cubic-bezier(.2,.7,.2,1.1);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 176, 66, 0.28) transparent;
+}
+.picker-shelf::-webkit-scrollbar {
+  width: 8px;
+}
+.picker-shelf::-webkit-scrollbar-track {
+  background: transparent;
+}
+.picker-shelf::-webkit-scrollbar-thumb {
+  background: rgba(245, 176, 66, 0.28);
+  border-radius: 8px;
+}
+.picker-shelf::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 176, 66, 0.45);
 }
 
 .picker-card {
