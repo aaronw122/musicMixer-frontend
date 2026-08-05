@@ -844,7 +844,7 @@ body {
    Responsive — Portrait Phone
    ═══════════════════════════════════════════ */
 
-@media (orientation: portrait) and (max-width: 900px) {
+@media (orientation: portrait) and (max-width: 500px) and (pointer: coarse) {
   .rotate-prompt {
     display: flex;
   }
