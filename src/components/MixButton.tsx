@@ -272,12 +272,11 @@ function MixButtonDome({
       {/* a) Shadow beneath button */}
       <ellipse
         cx={cx}
-        cy={cy + 14}
-        rx={pressed ? r - 3 : r - 2}
-        ry={pressed ? 20 : 22}
-        fill={pressed ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.5)'}
+        cy={cy + 16}
+        rx={bezelR - 6}
+        ry={16}
+        fill="rgba(0,0,0,0.55)"
         filter="url(#mixer-btn-shadow-blur)"
-        style={{ transition: 'all 0.15s ease-out' }}
       />
 
       {/* b) Chrome rim */}
@@ -311,9 +310,9 @@ function MixButtonDome({
         <circle
           cx={cx}
           cy={cy}
-          r={r - 1}
+          r={r}
           fill="none"
-          stroke="rgba(0,0,0,0.15)"
+          stroke="rgba(0,0,0,0.28)"
           strokeWidth={2}
         />
 
@@ -322,10 +321,10 @@ function MixButtonDome({
           x={cx}
           y={cy + 2}
           fontSize={34}
-          fontFamily={`"Helvetica Neue", "Arial Black", Helvetica, Arial, sans-serif`}
+          fontFamily={font}
           fontWeight={900}
           letterSpacing={6}
-          fill="rgba(0,0,0,0.2)"
+          fill="rgba(0,0,0,0.4)"
           textAnchor="middle"
           dominantBaseline="central"
         >
@@ -351,7 +350,7 @@ function MixButtonDome({
           x={cx}
           y={cy}
           fontSize={34}
-          fontFamily={`"Helvetica Neue", "Arial Black", Helvetica, Arial, sans-serif`}
+          fontFamily={font}
           fontWeight={900}
           letterSpacing={6}
           fill={lit ? '#fff6e6' : 'white'}
@@ -361,18 +360,6 @@ function MixButtonDome({
           MIX
         </text>
       </g>
-
-      {/* Submitting pulse animation */}
-      {submitting && (
-        <circle cx={cx} cy={cy} r={r} fill="rgba(255,255,255,0.08)">
-          <animate
-            attributeName="opacity"
-            values="1;0.3;1"
-            dur="1.2s"
-            repeatCount="indefinite"
-          />
-        </circle>
-      )}
     </g>
   );
 }
@@ -498,34 +485,42 @@ export function MixButton({ canMix, submitting, onClick }: Props) {
           <stop offset="100%" stopColor="rgba(0,0,0,0.15)" />
         </linearGradient>
 
-        {/* Chrome rim gradient */}
-        <linearGradient id="mixer-chrome-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#f0f0f0" />
-          <stop offset="15%" stopColor="#e8e8ea" />
-          <stop offset="40%" stopColor="#c0c2c6" />
-          <stop offset="60%" stopColor="#a8aaae" />
-          <stop offset="80%" stopColor="#c8cacf" />
-          <stop offset="100%" stopColor="#909296" />
+        {/* Chrome bezel gradient */}
+        <linearGradient id="mixer-bezel-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#f4f5f7" />
+          <stop offset="18%" stopColor="#cdcfd3" />
+          <stop offset="50%" stopColor="#797b80" />
+          <stop offset="82%" stopColor="#b7b9bd" />
+          <stop offset="100%" stopColor="#4a4c50" />
         </linearGradient>
 
-        {/* Red dome cap gradient — 3D dome shading */}
-        <radialGradient
-          id="mixer-cap-grad"
-          cx="40%"
-          cy="32%"
-          r="58%"
-        >
-          <stop offset="0%" stopColor="#ff4a4a" />
-          <stop offset="30%" stopColor="#e22828" />
-          <stop offset="65%" stopColor="#b81c1c" />
-          <stop offset="85%" stopColor="#8a1010" />
-          <stop offset="100%" stopColor="#5a0808" />
+        {/* Recessed well inside the bezel */}
+        <radialGradient id="mixer-bezel-well" cx="50%" cy="38%" r="70%">
+          <stop offset="0%" stopColor="#4a4c50" />
+          <stop offset="70%" stopColor="#2a2b2e" />
+          <stop offset="100%" stopColor="#141416" />
         </radialGradient>
 
-        {/* Dome highlight — white specular */}
-        <radialGradient id="mixer-dome-highlight" cx="38%" cy="28%" r="30%">
-          <stop offset="0%" stopColor="rgba(255,255,255,0.55)" />
-          <stop offset="60%" stopColor="rgba(255,255,255,0.12)" />
+        {/* Cap: dark / inert (songs not loaded) */}
+        <radialGradient id="mixer-cap-off" cx="42%" cy="34%" r="82%">
+          <stop offset="0%" stopColor="#5a1512" />
+          <stop offset="55%" stopColor="#3a0d0b" />
+          <stop offset="100%" stopColor="#1d0605" />
+        </radialGradient>
+
+        {/* Cap: backlit translucent red/amber */}
+        <radialGradient id="mixer-cap-on" cx="50%" cy="46%" r="72%">
+          <stop offset="0%" stopColor="#fff2d0" />
+          <stop offset="24%" stopColor="#ffb75c" />
+          <stop offset="55%" stopColor="#f5563a" />
+          <stop offset="82%" stopColor="#c21f1a" />
+          <stop offset="100%" stopColor="#7a1410" />
+        </radialGradient>
+
+        {/* Specular sheen on cap */}
+        <radialGradient id="mixer-cap-sheen" cx="38%" cy="28%" r="50%">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.85)" />
+          <stop offset="50%" stopColor="rgba(255,255,255,0.15)" />
           <stop offset="100%" stopColor="rgba(255,255,255,0)" />
         </radialGradient>
 
@@ -553,6 +548,11 @@ export function MixButton({ canMix, submitting, onClick }: Props) {
         {/* Bottom shadow blur */}
         <filter id="mixer-btn-shadow-blur" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur stdDeviation="6" />
+        </filter>
+
+        {/* Lettering glow blur */}
+        <filter id="mixer-glow-blur" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="2.2" />
         </filter>
 
         {/* Crossfader cap gradient */}
