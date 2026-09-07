@@ -291,8 +291,11 @@ function MixButtonDome({
         transform: pressed ? 'translate(0.5px, 0.5px)' : 'translate(0, 0)',
         transition: 'transform 0.15s ease-out',
       }}>
-        {/* c) Dome cap -- backlit red/amber when lit, inert red otherwise */}
-        <circle cx={cx} cy={cy} r={r} fill={lit ? 'url(#mixer-cap-on)' : 'url(#mixer-cap-grad)'} />
+        {/* c) Dome cap -- backlit gradient blends over the base red when lit */}
+        <circle cx={cx} cy={cy} r={r} fill="url(#mixer-cap-grad)" />
+        {lit && (
+          <circle cx={cx} cy={cy} r={r} fill="url(#mixer-cap-on)" opacity={0.7} />
+        )}
 
         {/* Internal backlight bloom */}
         {lit && (
