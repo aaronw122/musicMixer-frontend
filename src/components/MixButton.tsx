@@ -257,6 +257,7 @@ function MixButtonDome({
   const haloR = r * 1.5;
   const haloOpacity = lit ? 0.7 : 0;
   const capFill = lit ? 'url(#mixer-cap-on)' : 'url(#mixer-cap-off)';
+  const sheenOpacity = pressed ? 0.5 : lit ? 0.7 : 0.4;
   const font = `"Helvetica Neue", "Arial Black", Helvetica, Arial, sans-serif`;
 
   return (
@@ -270,7 +271,7 @@ function MixButtonDome({
         filter="url(#mixer-btn-shadow-blur)"
         opacity={haloOpacity}
       >
-        {isReady && !submitting && !pressed && (
+        {isReady && !pressed && (
           <animate attributeName="opacity" values="0.7;1;0.7" dur="2.6s" repeatCount="indefinite" />
         )}
         {submitting && (
@@ -324,7 +325,7 @@ function MixButtonDome({
           rx={r * 0.54}
           ry={r * 0.32}
           fill="url(#mixer-cap-sheen)"
-          opacity={pressed ? 0.5 : lit ? 0.7 : 0.4}
+          opacity={sheenOpacity}
         />
 
         {/* Engraved "MIX" -- shadow, glow (lit only), face */}
