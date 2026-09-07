@@ -251,6 +251,7 @@ function MixButtonDome({
   submitting: boolean;
   isReady: boolean;
 }) {
+  const lit = isReady || submitting;
   return (
     <g opacity={submitting ? undefined : isReady ? 1 : 0.4}>
 
@@ -290,8 +291,13 @@ function MixButtonDome({
         transform: pressed ? 'translate(0.5px, 0.5px)' : 'translate(0, 0)',
         transition: 'transform 0.15s ease-out',
       }}>
-        {/* c) Red dome cap */}
-        <circle cx={cx} cy={cy} r={r} fill="url(#mixer-cap-grad)" />
+        {/* c) Dome cap -- backlit red/amber when lit, inert red otherwise */}
+        <circle cx={cx} cy={cy} r={r} fill={lit ? 'url(#mixer-cap-on)' : 'url(#mixer-cap-grad)'} />
+
+        {/* Internal backlight bloom */}
+        {lit && (
+          <circle cx={cx} cy={cy} r={r - 6} fill="url(#mixer-halo)" opacity={0.55} />
+        )}
 
         {/* d) Dome specular highlight */}
         <circle cx={cx} cy={cy} r={r} fill="url(#mixer-dome-highlight)"
@@ -308,7 +314,7 @@ function MixButtonDome({
           strokeWidth={2}
         />
 
-        {/* f) "MIX" text -- white with subtle shadow */}
+        {/* f) "MIX" text -- shadow, glow layer (lit only), face */}
         <text
           x={cx}
           y={cy + 2}
@@ -322,6 +328,22 @@ function MixButtonDome({
         >
           MIX
         </text>
+        {lit && (
+          <text
+            x={cx}
+            y={cy}
+            fontSize={34}
+            fontFamily={`"Helvetica Neue", "Arial Black", Helvetica, Arial, sans-serif`}
+            fontWeight={900}
+            letterSpacing={6}
+            fill="rgba(255,220,150,0.9)"
+            filter="url(#mixer-glow-blur)"
+            textAnchor="middle"
+            dominantBaseline="central"
+          >
+            MIX
+          </text>
+        )}
         <text
           x={cx}
           y={cy}
@@ -329,7 +351,7 @@ function MixButtonDome({
           fontFamily={`"Helvetica Neue", "Arial Black", Helvetica, Arial, sans-serif`}
           fontWeight={900}
           letterSpacing={6}
-          fill="white"
+          fill={lit ? '#fff6e6' : 'white'}
           textAnchor="middle"
           dominantBaseline="central"
         >
@@ -510,6 +532,20 @@ export function MixButton({ canMix, submitting, onClick }: Props) {
           <stop offset="55%" stopColor="rgba(245,90,40,0.35)" />
           <stop offset="100%" stopColor="rgba(245,90,40,0)" />
         </radialGradient>
+
+        {/* Cap: backlit translucent red/amber (lit state) */}
+        <radialGradient id="mixer-cap-on" cx="50%" cy="46%" r="72%">
+          <stop offset="0%" stopColor="#fff2d0" />
+          <stop offset="24%" stopColor="#ffb75c" />
+          <stop offset="55%" stopColor="#f5563a" />
+          <stop offset="82%" stopColor="#c21f1a" />
+          <stop offset="100%" stopColor="#7a1410" />
+        </radialGradient>
+
+        {/* Lettering glow blur */}
+        <filter id="mixer-glow-blur" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="2.2" />
+        </filter>
 
         {/* Bottom shadow blur */}
         <filter id="mixer-btn-shadow-blur" x="-50%" y="-50%" width="200%" height="200%">
