@@ -263,9 +263,9 @@ function MixButtonDome({
           r={r * 1.5}
           fill="url(#mixer-halo)"
           filter="url(#mixer-btn-shadow-blur)"
-          opacity={0.7}
+          opacity={0.35}
         >
-          <animate attributeName="opacity" values="0.7;1;0.7" dur="2.6s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.35;0.5;0.35" dur="2.6s" repeatCount="indefinite" />
         </circle>
       )}
 
@@ -296,7 +296,7 @@ function MixButtonDome({
 
         {/* Internal backlight bloom */}
         {lit && (
-          <circle cx={cx} cy={cy} r={r - 6} fill="url(#mixer-halo)" opacity={0.55} />
+          <circle cx={cx} cy={cy} r={r - 6} fill="url(#mixer-halo)" opacity={0.28} />
         )}
 
         {/* d) Dome specular highlight */}
@@ -336,7 +336,7 @@ function MixButtonDome({
             fontFamily={`"Helvetica Neue", "Arial Black", Helvetica, Arial, sans-serif`}
             fontWeight={900}
             letterSpacing={6}
-            fill="rgba(255,220,150,0.9)"
+            fill="rgba(255,220,150,0.45)"
             filter="url(#mixer-glow-blur)"
             textAnchor="middle"
             dominantBaseline="central"
