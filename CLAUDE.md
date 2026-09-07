@@ -4,6 +4,10 @@ React-based web client for musicMixer. Users upload two songs, describe a mashup
 
 **Status:** Not yet scaffolded. Day 1 uses a static HTML page served by the FastAPI backend (`backend/static/index.html`). This repo gets created on Day 3.
 
+## Contributing
+
+PRs follow [`CONTRIBUTING.md`](./CONTRIBUTING.md): a **What / Why / Before-After / Test Results** description plus a checklist. Keep **What** and **Why** to ~150 words each — no commit SHAs, ticket IDs, or rollout history in the description.
+
 ## Repository Structure
 
 TBD — will be scaffolded with Vite + React. Expected layout:
